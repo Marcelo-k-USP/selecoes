@@ -171,7 +171,7 @@ Route::get('funcoes', [FuncaoController::class, 'edit'])->name('funcoes.edit');
 Route::put('funcoes', [FuncaoController::class, 'update'])->name('funcoes.update');
 
 // RESPONSÁVEIS
-Route::get('responsaveis/{id}/{funcao}/{programa_id?}', [ResponsavelController::class, 'show']);
+Route::get('responsaveis/{id}/{grupo_funcao}/{programa_id?}', [ResponsavelController::class, 'show']);
 
 // LOCAL USERS
 Route::resource('localusers', LocalUserController::class);

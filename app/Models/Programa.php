@@ -91,34 +91,39 @@ class Programa extends Model
         if (!$funcao)
             return collect();
 
-        return $this->users()->wherePivot('funcao_id', $funcao->id)->select('users.id', 'users.name')->orderBy('users.name')->get();
+        return $this->users()->wherePivot('funcao_id', $funcao->id)->select('users.id', 'users.name', 'users.codpes', 'users.email')->orderBy('users.name')->get();
     }
 
     public function obterResponsaveis()
     {
-        $funcao_servico_posgraduacao = Funcao::where('nome', 'Serviço de Pós-Graduação')->first();
-        $funcao_coordenadores_posgraduacao = Funcao::where('nome', 'Coordenadores(as) da Pós-Graduação')->first();
+        $grupo_funcionarios_setor = Funcao::where('grupo', 'Funcionários(as) do Setor')->first();
+        $grupo_coordenadores_setor = Funcao::where('grupo', 'Coordenadores(as) do Setor')->first();
 
         return [
             [
                 'funcao' => 'Docentes do Programa',
+                'grupo' => 'Docentes do Programa',
                 'users' => $this->obterPessoasFuncao('Docentes do Programa'),
             ],
             [
                 'funcao' => 'Secretários(as) do Programa',
+                'grupo' => 'Secretários(as) do Programa',
                 'users' => $this->obterPessoasFuncao('Secretários(as) do Programa'),
             ],
             [
                 'funcao' => 'Coordenadores(as) do Programa',
+                'grupo' => 'Coordenadores(as) do Programa',
                 'users' => $this->obterPessoasFuncao('Coordenadores(as) do Programa'),
             ],
             [
                 'funcao' => 'Serviço de Pós-Graduação',
-                'users' => $funcao_servico_posgraduacao ? $funcao_servico_posgraduacao->users()->orderBy('users.name')->get() : collect(),
+                'grupo' => 'Funcionários(as) do Setor',
+                'users' => $grupo_funcionarios_setor ? $grupo_funcionarios_setor->users()->orderBy('users.name')->get() : collect(),
             ],
             [
                 'funcao' => 'Coordenadores(as) da Pós-Graduação',
-                'users' => $funcao_coordenadores_posgraduacao ? $funcao_coordenadores_posgraduacao->users()->orderBy('users.name')->get() : collect(),
+                'grupo' => 'Coordenadores(as) do Setor',
+                'users' => $grupo_coordenadores_setor ? $grupo_coordenadores_setor->users()->orderBy('users.name')->get() : collect(),
             ],
         ];
     }

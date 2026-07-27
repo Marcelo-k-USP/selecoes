@@ -62,7 +62,7 @@ class SolicitacaoIsencaoTaxa extends Model
     {
         return [
             'Aguardando Envio', 'Isenção de Taxa Solicitada',                                                                                   // decorrem de ações do candidato
-            'Isenção de Taxa em Avaliação', 'Isenção de Taxa Aprovada', 'Isenção de Taxa Rejeitada', 'Isenção de Taxa Aprovada Após Recurso'    // decorrem de ações do serviço de pós-graduação
+            'Isenção de Taxa em Avaliação', 'Isenção de Taxa Aprovada', 'Isenção de Taxa Rejeitada', 'Isenção de Taxa Aprovada Após Recurso'    // decorrem de ações do setor responsável
         ];
     }
 
@@ -152,7 +152,7 @@ class SolicitacaoIsencaoTaxa extends Model
             case 'gerente':
                 if (Auth::user()->funcoes()
                         ->whereNull('user_funcao.programa_id')
-                        ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                        ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                         ->exists())
                     $solicitacoesisencaotaxa = self::with('selecao')->get();
                 else

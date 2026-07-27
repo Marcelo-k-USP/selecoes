@@ -24,18 +24,18 @@ class ResponsavelController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int                       $id
-     * @param  string                    $funcao
+     * @param  string                    $grupo_funcao
      * @param  ?int                      $programa_id
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, int $id, string $funcao, ?int $programa_id = null)
+    public function show(Request $request, int $id, string $grupo_funcao, ?int $programa_id = null)
     {
         if ($request->ajax()) {
 
             $user = User::find((int) $id);
-            if ($user->gerenciaProgramaFuncao($funcao, $programa_id)) {    // traz dados apenas de quem possui a dada função no dado programa
+            if ($user->gerenciaProgramaGrupoFuncao($grupo_funcao, $programa_id)) {    // traz dados apenas de quem possui o dado grupo de função no dado programa
 
-                if ($funcao != 'Secretários(as) do Programa')
+                if ($grupo_funcao != 'Secretários(as) do Programa')
                     $user->telefone = '';
 
                 return $user;    // preenche os dados do modal de exibição de um responsável

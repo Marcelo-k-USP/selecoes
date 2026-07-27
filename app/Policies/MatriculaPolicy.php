@@ -32,7 +32,7 @@ class MatriculaPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::any(['perfilgerente', 'perfildocente'])) {
-            if ($user->gerenciaProgramaFuncao('Serviço de Pós-Graduação') || $user->gerenciaProgramaFuncao('Coordenadores(as) da Pós-Graduação'))
+            if ($user->gerenciaProgramaGrupoFuncao('Funcionários(as) do Setor') || $user->gerenciaProgramaGrupoFuncao('Coordenadores(as) do Setor'))
                 return true;
             $programas = $this->obterProgramasParaMenu($user);
             return $programas->contains(fn($programa) => $programa->fazMatriculas());
@@ -62,7 +62,7 @@ class MatriculaPolicy
         elseif (Gate::allows('perfilgerente'))
             return $user->gerenciaPrograma($matricula->selecao->programa_id);
         elseif (Gate::allows('perfildocente'))
-            return $user->gerenciaProgramaFuncao('Docentes do Programa', $matricula->selecao->programa_id);
+            return $user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $matricula->selecao->programa_id);
         else
             return ($matricula->pessoas('Autor')->id == $user->id);    // permite que o usuário autor da matrícula a visualize
     }

@@ -159,7 +159,7 @@ class Inscricao extends Model
             case 'gerente':
                 if (Auth::user()->funcoes()
                         ->whereNull('user_funcao.programa_id')
-                        ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                        ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                         ->exists())
                     $inscricoes = self::with('selecao')->get();
                 else
