@@ -5,6 +5,9 @@
   <div class="row">
     <div class="col-md-12 form-inline">
       <span class="h4 mt-2">Seleções</span>
+      <div class="h4 mt-1 ml-2">
+        <span class="badge badge-pill badge-primary datatable-counter">-</span>
+      </div>
       @include('partials.datatable-filter-box', ['otable'=>'oTable'])
       @can('selecoes.viewAny')
         <a href="{{ route('selecoes.create') }}" class="btn btn-sm btn-success">

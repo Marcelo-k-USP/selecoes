@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Funcao;
 use App\Models\Programa;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -60,45 +61,44 @@ class FuncaoController extends Controller
 
     private function monta_compact()
     {
-        $programas_docentes = Programa::with(['users' => function ($query) {
-            $query->where('funcao', 'Docentes do Programa')
-                  ->orderBy('user_programa.programa_id')
-                  ->orderBy('users.name');
+        $funcao_docentes = Funcao::where('nome', 'Docentes do Programa')->first();
+        $funcao_secretarios_programa = Funcao::where('nome', 'Secretários(as) do Programa')->first();
+        $funcao_coordenadores_programa = Funcao::where('nome', 'Coordenadores(as) do Programa')->first();
+        $funcao_servico_posgraduacao = Funcao::where('nome', 'Serviço de Pós-Graduação')->first();
+        $funcao_coordenadores_posgraduacao = Funcao::where('nome', 'Coordenadores(as) da Pós-Graduação')->first();
+
+        $programas_docentes = Programa::with(['users' => function ($query) use ($funcao_docentes) {
+            if ($funcao_docentes)
+                $query->where('user_funcao.funcao_id', $funcao_docentes->id)
+                    ->orderBy('user_funcao.programa_id')
+                    ->orderBy('users.name');
         }])->get();
-        $programas_secretarios = Programa::with(['users' => function ($query) {
-            $query->where('funcao', 'Secretários(as) do Programa')
-                  ->orderBy('user_programa.programa_id')
-                  ->orderBy('users.name');
+        $programas_secretarios = Programa::with(['users' => function ($query) use ($funcao_secretarios_programa) {
+            if ($funcao_secretarios_programa)
+                $query->where('user_funcao.funcao_id', $funcao_secretarios_programa->id)
+                    ->orderBy('user_funcao.programa_id')
+                    ->orderBy('users.name');
         }])->get();
-        $programas_coordenadores = Programa::with(['users' => function ($query) {
-            $query->where('funcao', 'Coordenadores(as) do Programa')
-                  ->orderBy('user_programa.programa_id')
-                  ->orderBy('users.name');
+        $programas_coordenadores = Programa::with(['users' => function ($query) use ($funcao_coordenadores_programa) {
+            if ($funcao_coordenadores_programa)
+                $query->where('user_funcao.funcao_id', $funcao_coordenadores_programa->id)
+                    ->orderBy('user_funcao.programa_id')
+                    ->orderBy('users.name');
         }])->get();
-        $posgraduacao_servico_users = DB::table('user_programa')    // não dá pra partir de User:: nem Programa::, pelo fato de programa_id ser null na tabela relacional
-            ->join('users', 'user_programa.user_id', '=', 'users.id')
-            ->where('user_programa.funcao', 'Serviço de Pós-Graduação')
-            ->orderBy('users.name')
-            ->select('users.name', 'users.codpes')
-            ->get()
-            ->map(function ($user) {
-                return (object) [
-                    'name' => $user->name,
-                    'codpes' => $user->codpes,
-                ];
-            })->values()->toArray();
-        $posgraduacao_coordenadores_users = DB::table('user_programa')    // não dá pra partir de User:: nem Programa::, pelo fato de programa_id ser null na tabela relacional
-            ->join('users', 'user_programa.user_id', '=', 'users.id')
-            ->where('user_programa.funcao', 'Coordenadores(as) da Pós-Graduação')
-            ->orderBy('users.name')
-            ->select('users.name', 'users.codpes')
-            ->get()
-            ->map(function ($user) {
-                return (object) [
-                    'name' => $user->name,
-                    'codpes' => $user->codpes,
-                ];
-            })->values()->toArray();
+        $posgraduacao_servico_users = $funcao_servico_posgraduacao ?
+            $funcao_servico_posgraduacao->users()
+                ->select('users.name', 'users.codpes')
+                ->orderBy('users.name')
+                ->get()
+                ->map(function ($user) { return (object) [ 'name' => $user->name, 'codpes' => $user->codpes ]; })->values()->toArray() :
+            [];
+        $posgraduacao_coordenadores_users = $funcao_coordenadores_posgraduacao ?
+            $funcao_coordenadores_posgraduacao->users()
+                ->select('users.name', 'users.codpes')
+                ->orderBy('users.name')
+                ->get()
+                ->map(function ($user) { return (object) [ 'name' => $user->name, 'codpes' => $user->codpes ]; })->values()->toArray() :
+            [];
 
         return compact('programas_docentes', 'programas_secretarios', 'programas_coordenadores', 'posgraduacao_servico_users', 'posgraduacao_coordenadores_users');
     }

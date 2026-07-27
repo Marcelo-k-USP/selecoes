@@ -85,33 +85,40 @@ class Programa extends Model
         return $ret;
     }
 
-    public function obterPessoasFuncao(string $funcao)
+    public function obterPessoasFuncao(string $funcao_nome)
     {
-        return $this->users()->wherePivot('funcao', $funcao)->select('users.id', 'users.name as nome')->orderBy('users.name')->get();
+        $funcao = Funcao::where('nome', $funcao_nome)->first();
+        if (!$funcao)
+            return collect();
+
+        return $this->users()->wherePivot('funcao_id', $funcao->id)->select('users.id', 'users.name')->orderBy('users.name')->get();
     }
 
     public function obterResponsaveis()
     {
+        $funcao_servico_posgraduacao = Funcao::where('nome', 'Serviço de Pós-Graduação')->first();
+        $funcao_coordenadores_posgraduacao = Funcao::where('nome', 'Coordenadores(as) da Pós-Graduação')->first();
+
         return [
             [
                 'funcao' => 'Docentes do Programa',
-                'users' => $this->users()->wherePivot('funcao', 'Docentes do Programa')->orderBy('name')->get(),
+                'users' => $this->obterPessoasFuncao('Docentes do Programa'),
             ],
             [
                 'funcao' => 'Secretários(as) do Programa',
-                'users' => $this->users()->wherePivot('funcao', 'Secretários(as) do Programa')->orderBy('name')->get(),
+                'users' => $this->obterPessoasFuncao('Secretários(as) do Programa'),
             ],
             [
                 'funcao' => 'Coordenadores(as) do Programa',
-                'users' => $this->users()->wherePivot('funcao', 'Coordenadores(as) do Programa')->orderBy('name')->get(),
+                'users' => $this->obterPessoasFuncao('Coordenadores(as) do Programa'),
             ],
             [
                 'funcao' => 'Serviço de Pós-Graduação',
-                'users' => DB::table('user_programa')->join('users', 'user_programa.user_id', '=', 'users.id')->where('user_programa.funcao', 'Serviço de Pós-Graduação')->orderBy('users.name')->get(),    // não dá pra partir de Programa::, pelo fato de programa_id ser null na tabela relacional
+                'users' => $funcao_servico_posgraduacao ? $funcao_servico_posgraduacao->users()->orderBy('users.name')->get() : collect(),
             ],
             [
                 'funcao' => 'Coordenadores(as) da Pós-Graduação',
-                'users' => DB::table('user_programa')->join('users', 'user_programa.user_id', '=', 'users.id')->where('user_programa.funcao', 'Coordenadores(as) da Pós-Graduação')->orderBy('users.name')->get(),    // não dá pra partir de Programa::, pelo fato de programa_id ser null na tabela relacional
+                'users' => $funcao_coordenadores_posgraduacao ? $funcao_coordenadores_posgraduacao->users()->orderBy('users.name')->get() : collect(),
             ],
         ];
     }
@@ -155,9 +162,16 @@ class Programa extends Model
      */
     public function users()
     {
-        return $this->belongsToMany('App\Models\User', 'user_programa')->withPivot('funcao')->withTimestamps();
+        return $this->belongsToMany('App\Models\User', 'user_funcao', 'programa_id', 'user_id')->withPivot('funcao_id')->withTimestamps();
     }
 
+    /**
+     * relacionamento com funções
+     */
+    public function funcoes()
+    {
+        return $this->belongsToMany('App\Models\Funcao', 'user_funcao', 'programa_id', 'funcao_id')->withPivot('user_id')->withTimestamps();
+    }
 
     public function nomeCompleto()
     {

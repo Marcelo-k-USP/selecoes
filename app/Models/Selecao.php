@@ -930,10 +930,11 @@ class Selecao extends Model
                             if (session('perfil') == 'admin')                                                      // desde que o usuário seja admin, ou...
                                 return;
                             $query->orWhereExists(function ($query) {
-                                $query->select(\DB::raw(1))
-                                    ->from('user_programa')
-                                    ->where('user_id', \Auth::id())
-                                    ->whereIn('funcao', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']);    // ou que o usuário seja do Serviço de Pós-Graduação ou Coordenadores(as) da Pós-Graduação
+                                $query->selectRaw(1)
+                                    ->from('user_funcao')
+                                    ->join('funcoes', 'funcoes.id', '=', 'user_funcao.funcao_id')
+                                    ->where('user_funcao.user_id', \Auth::id())
+                                    ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']);    // ou que o usuário seja do Serviço de Pós-Graduação ou Coordenadores(as) da Pós-Graduação
                             });
                         });
                     })

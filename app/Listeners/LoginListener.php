@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\Funcao;
 use App\Models\Setor;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
@@ -26,10 +27,12 @@ class LoginListener
             session(['perfil' => '']);    // limpa para não errar dentro do listarProgramasGerenciados
             $possui_vinculo_gerente_acima_docente = false;
             $possui_vinculo_docente = false;
+            $funcao_docente = Funcao::where('nome', 'Docentes do Programa')->first();
+            $funcao_docente_id = $funcao_docente ? $funcao_docente->id : 0;
             foreach ($vinculos as $vinculo) {
                 if ((!in_array(mb_convert_case($vinculo['tipvin'], MB_CASE_TITLE), ['Admin', 'Gerente', 'Docente'])) && !$user->listarProgramasGerenciados()->isEmpty())    // se o vínculo do usuário não for nem de admin nem de gerente nem de docente, e ele tiver alguma relação com algum programa...
-                    if (!($user->listarProgramasGerenciados()->filter(function ($programa) {
-                        return (!isset($programa->pivot) || ($programa->pivot->funcao !== 'Docentes do Programa'));
+                    if (!($user->listarProgramasGerenciados()->filter(function ($programa) use ($funcao_docente_id) {
+                        return (!isset($programa->pivot) || ($programa->pivot->funcao_id !== $funcao_docente_id));
                     }))->isEmpty()) {
                         $vinculo['nomeVinculo'] = 'Gerente';    // iremos vinculá-lo ao seu setor como gerente, subindo seu grau de autorizações para que ele tenha acesso gerencial aos seus programas
                         $possui_vinculo_gerente_acima_docente = true;

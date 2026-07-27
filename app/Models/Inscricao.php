@@ -157,10 +157,9 @@ class Inscricao extends Model
                 break;
 
             case 'gerente':
-                if (DB::table('user_programa')    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-                        ->where('user_id', Auth::id())
-                        ->whereNull('programa_id')
-                        ->whereIn('funcao', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                if (Auth::user()->funcoes()
+                        ->whereNull('user_funcao.programa_id')
+                        ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
                         ->exists())
                     $inscricoes = self::with('selecao')->get();
                 else

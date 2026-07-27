@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Feriado;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use League\CommonMark\Environment\Environment;
@@ -81,7 +82,7 @@ if (!function_exists('formatarDataHoraAtualComMilissegundos')) {
 if (!function_exists('addWorkingDays')) {
     function addWorkingDays($date, $offset) {
         $carbonDate = Carbon::parse($date);
-        $holidays = \DB::table('feriados')->pluck('data')->map(function($date) {
+        $holidays = Feriado::pluck('data')->map(function($date) {
             return Carbon::parse($date)->format('Y-m-d');
         })->toArray();
 

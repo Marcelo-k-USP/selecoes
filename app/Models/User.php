@@ -205,83 +205,76 @@ class User extends Authenticatable
         return self::where('email', $email)->exists();
     }
 
-    public function associarProgramaFuncao(?string $programa, string $funcao)
+    public function associarProgramaFuncao(?string $programa_nome, string $funcao_nome)
     {
-        if (is_null($programa))
-            $this->programas()->newPivotStatement()->insert([    // insere manualmente registro na tabela relacional... não funciona fazer attach de usuário para um programa inexistente
-                'user_id' => $this->id,
-                'programa_id' => null,
-                'funcao' => $funcao,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        $funcao = Funcao::where('nome', $funcao_nome)->first();
+        $programa = is_null($programa_nome) ? null : Programa::where('nome', $programa_nome)->first();
+        if ($programa)
+            $this->funcoes()->attach($funcao->id, [ 'programa_id' => $programa->id ]);
         else
-            $this->programas()->attach(Programa::where('nome', $programa)->first()->id, ['funcao' => $funcao]);
+            $this->funcoes()->attach($funcao->id, [ 'programa_id' => null ]);
     }
 
-    public function desassociarProgramaFuncao(?string $programa, string $funcao)
+    public function desassociarProgramaFuncao(?string $programa_nome, string $funcao_nome)
     {
-        // remove manualmente registro na tabela relacional... não funciona fazer detach de usuário para um programa inexistente, nem detach em que se especifica o pivot
-        DB::table('user_programa')
-            ->where('user_id', $this->id)
-            ->where('programa_id', is_null($programa) ? null : Programa::where('nome', $programa)->first()->id)
-            ->where('funcao', $funcao)
-            ->delete();
+        $funcao = Funcao::where('nome', $funcao_nome)->first();
+        $programa = is_null($programa_nome) ? null : Programa::where('nome', $programa_nome)->first();
+        if ($programa)
+            $this->funcoes()->wherePivot('programa_id', $programa->id)->detach($funcao->id);
+        else
+            $this->funcoes()->wherePivotNull('programa_id')->detach($funcao->id);
     }
 
     public function listarProgramasGerenciados()
     {
         if ((session('perfil') == 'admin') ||
-            (DB::table('user_programa')    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-                 ->where('user_id', $this->id)
-                 ->whereNull('programa_id')
-                 ->where(function ($query) {
-                     $query->where('funcao', 'Serviço de Pós-Graduação')
-                         ->orWhere('funcao', 'Coordenadores(as) da Pós-Graduação');
-                 })->exists()))
+            ($this->funcoes()
+                 ->whereNull('user_funcao.programa_id')
+                 ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                 ->exists()))
             return Programa::all();
         else
             return $this->programas;
     }
 
-    public function listarProgramasGerenciadosFuncao(string $funcao)
+    public function listarProgramasGerenciadosFuncao(string $funcao_nome)
     {
+        $funcao = Funcao::where('nome', $funcao_nome)->first();
+
         if ((session('perfil') == 'admin') ||
-            (DB::table('user_programa')    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-                 ->where('user_id', $this->id)
-                 ->whereNull('programa_id')
-                 ->where(function ($query) use ($funcao) {
-                     $query->where('funcao', $funcao);
-                 })->exists()))
+            ($this->funcoes()
+                 ->whereNull('user_funcao.programa_id')
+                 ->where('funcoes.id', $funcao->id)
+                 ->exists()))
             return Programa::whereHas('users', function ($query) use ($funcao) {
-                $query->where('user_programa.funcao', $funcao);
+                $query->where('user_funcao.funcao_id', $funcao->id);
             })->get();
         else
-            return $this->programas()->where('funcao', $funcao)->get();
+            return $this->programas()->where('user_funcao.funcao_id', $funcao->id)->get();
     }
 
     public function gerenciaPrograma(?int $programa_id = null)
     {
-        if ($this->programas()->where('programa_id', $programa_id)->exists())
+        if ($this->programas()->where('user_funcao.programa_id', $programa_id)->exists())
             return true;
 
-        return DB::table('user_programa')    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-                   ->where('user_id', $this->id)
-                   ->whereNull('programa_id')
-                   ->whereIn('funcao', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
-                   ->exists();
+        return $this->funcoes()
+                    ->whereNull('user_funcao.programa_id')
+                    ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                    ->exists();
     }
 
-    public function gerenciaProgramaFuncao(string $funcao, ?int $programa_id = null)
+    public function gerenciaProgramaFuncao(string $funcao_nome, ?int $programa_id = null)
     {
-        if (in_array($funcao, ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']))
-            return DB::table('user_programa')    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-                       ->where('user_id', $this->id)
-                       ->whereNull('programa_id')
-                       ->where('funcao', $funcao)
-                       ->exists();
+        $funcao = Funcao::where('nome', $funcao_nome)->first();
 
-        return $this->programas()->where('programa_id', $programa_id)->where('funcao', $funcao)->exists();
+        if (in_array($funcao->nome, ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']))
+            return $this->funcoes()
+                        ->whereNull('user_funcao.programa_id')
+                        ->where('funcoes.id', $funcao->id)
+                        ->exists();
+
+        return $this->programas()->where('user_funcao.programa_id', $programa_id)->where('user_funcao.funcao_id', $funcao->id)->exists();
     }
 
     /**
@@ -290,16 +283,8 @@ class User extends Authenticatable
      */
     public function getFuncaoMaximaAttribute()
     {
-        $funcoesUsuario = DB::table('user_programa')->where('user_id', $this->id)->pluck('funcao')->filter()->toArray();    // não dá pra partir de $this->, pelo fato de programa_id ser null na tabela relacional
-        if (empty($funcoesUsuario))
-            return null;
-
-        $funcoesOrdenadas = ['Coordenadores(as) da Pós-Graduação', 'Serviço de Pós-Graduação', 'Coordenadores(as) do Programa', 'Secretários(as) do Programa', 'Docentes do Programa'];
-        foreach ($funcoesOrdenadas as $funcao)
-            if (in_array($funcao, $funcoesUsuario))
-                return $funcao;    // retorna a primeira função do usuário que aparece na lista de funções ordenadas, ou seja, a função mais alta
-
-        return array_values($funcoesUsuario)[0];
+        $funcao_mais_alta = $this->funcoes()->orderByDesc('peso')->first();
+        return $funcao_mais_alta ? $funcao_mais_alta->nome : null;
     }
 
     /**
@@ -336,12 +321,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Relacionamento n:n com programa, atributo funcao:
-     *  - Secretario, Coordenador do Programa, Coordenador da Pos-Graduacao
+     * Relacionamento n:n com funções:
+     */
+    public function funcoes()
+    {
+        return $this->belongsToMany('App\Models\Funcao', 'user_funcao', 'user_id', 'funcao_id')->withPivot('programa_id')->withTimestamps();
+    }
+
+    /**
+     * Relacionamento n:n com programas:
      */
     public function programas()
     {
-        return $this->belongsToMany('App\Models\Programa', 'user_programa')->withPivot('funcao')->withTimestamps();
+        return $this->belongsToMany('App\Models\Programa', 'user_funcao', 'user_id', 'programa_id')->withPivot('funcao_id')->withTimestamps();
     }
 
     // este método é invocado pelo senhaunica-socialite, por isso é preciso que ele exista aqui

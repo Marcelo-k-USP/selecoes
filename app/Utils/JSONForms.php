@@ -172,7 +172,7 @@ class JSONForms
                                             '<option value="" disabled selected>Selecione...</option>' . PHP_EOL;
                         foreach ($selecao->programa->obterPessoasFuncao('Docentes do Programa') as $orientador)
                             $html_string_orientador .=
-                                            '<option value="' . $orientador->id . '"' . ((isset($data->orientador) && ($orientador->id == $data->orientador)) ? ' selected' : '') . '>' . $orientador->nome . '</option>' . PHP_EOL;
+                                            '<option value="' . $orientador->id . '"' . ((isset($data->orientador) && ($orientador->id == $data->orientador)) ? ' selected' : '') . '>' . $orientador->name . '</option>' . PHP_EOL;
                         $html_string_orientador .=
                                         '</select>' . PHP_EOL .
                                         '</div>' . PHP_EOL;
