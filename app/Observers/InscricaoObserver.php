@@ -100,19 +100,19 @@ class InscricaoObserver
 
                         // envia e-mails avisando os(as) coordenadores(as) do programa da seleção da inscrição sobre a realização da inscrição
                         // envio do e-mail "11" do README.md
-                        foreach (collect($inscricao->selecao->programa->obterResponsaveis())->firstWhere('funcao', 'Coordenadores(as) do Programa')['users'] as $coordenador) {
-                            $responsavel_nome = 'Prezado(a) Sr(a). ' . Pessoa::obterNome($coordenador->codpes);
-                            \Mail::to($coordenador->email)
+                        foreach (collect($inscricao->selecao->programa->obterResponsaveis())->firstWhere('grupo', 'Coordenadores(as) do Programa')['users'] as $coordenador_programa) {
+                            $responsavel_nome = 'Prezado(a) Sr(a). ' . Pessoa::obterNome($coordenador_programa->codpes);
+                            \Mail::to($coordenador_programa->email)
                                 ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
                         }
                     }
                 } else {
-                    // envia e-mails avisando o serviço de pós-graduação sobre a realização da inscrição
+                    // envia e-mails avisando o setor responsável sobre a realização da inscrição
                     // envio do e-mail "12" do README.md
                     $passo = 'envio - para gestores';
-                    foreach (collect((new Programa)->obterResponsaveis())->firstWhere('funcao', 'Serviço de Pós-Graduação')['users'] as $servicoposgraduacao) {
-                        $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($servicoposgraduacao->codpes);
-                        \Mail::to($servicoposgraduacao->email)
+                    foreach (collect((new Programa)->obterResponsaveis())->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
+                        $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($funcionario_setor->codpes);
+                        \Mail::to($funcionario_setor->email)
                             ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
                     }
                 }

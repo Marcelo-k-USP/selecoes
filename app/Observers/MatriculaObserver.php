@@ -90,12 +90,12 @@ class MatriculaObserver
                 \Mail::to($user->email)
                     ->queue(new MatriculaMail(compact('passo', 'matricula', 'user', 'arquivos', 'email_secaoinformatica')));
 
-                // envia e-mails avisando o serviço de pós-graduação sobre a realização da matrícula
+                // envia e-mails avisando o setor responsável sobre a realização da matrícula
                 // envio do e-mail "13" do README.md
                 $passo = 'envio - para gestores';
-                foreach (collect((new Programa)->obterResponsaveis())->firstWhere('funcao', 'Serviço de Pós-Graduação')['users'] as $servicoposgraduacao) {
-                    $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($servicoposgraduacao->codpes);
-                    \Mail::to($servicoposgraduacao->email)
+                foreach (collect((new Programa)->obterResponsaveis())->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
+                    $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($funcionario_setor->codpes);
+                    \Mail::to($funcionario_setor->email)
                         ->queue(new MatriculaMail(compact('passo', 'matricula', 'user', 'responsavel_nome')));
                 }
             } elseif (($matricula->getOriginal('estado') == 'Em Pré-Avaliação') &&    // se o estado anterior era Em Pré-Avaliação

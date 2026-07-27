@@ -934,7 +934,7 @@ class Selecao extends Model
                                     ->from('user_funcao')
                                     ->join('funcoes', 'funcoes.id', '=', 'user_funcao.funcao_id')
                                     ->where('user_funcao.user_id', \Auth::id())
-                                    ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']);    // ou que o usuário seja do Serviço de Pós-Graduação ou Coordenadores(as) da Pós-Graduação
+                                    ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']);    // ou que o usuário seja do grupo Funcionários(as) do Setor ou Coordenadores(as) do Setor
                             });
                         });
                     })

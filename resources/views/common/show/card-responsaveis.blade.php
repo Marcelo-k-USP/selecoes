@@ -35,7 +35,7 @@
             <ul class="list-unstyled">
               @foreach($programa_secretarios as $user)
                 <li class="modo-visualizacao">
-                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Secretários(as) do Programa', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                     {{ $user['name'] }}
                   </a>
                 </li>
@@ -56,7 +56,7 @@
             <ul class="list-unstyled">
               @foreach($programa_coordenadores as $user)
                 <li class="modo-visualizacao">
-                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Coordenadores(as) do Programa', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                     {{ $user['name'] }}
                   </a>
                 </li>
@@ -80,7 +80,7 @@
           <ul class="list-unstyled">
             @foreach($posgraduacao_servico as $user)
               <li class="modo-visualizacao">
-                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Funcionários(as) do Setor')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                   {{ $user['name'] }}
                 </a>
               </li>
@@ -101,7 +101,7 @@
           <ul class="list-unstyled">
             @foreach($posgraduacao_coordenadores as $user)
               <li class="modo-visualizacao">
-                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Coordenadores(as) do Setor')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                   {{ $user['name'] }}
                 </a>
               </li>

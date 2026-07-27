@@ -30,7 +30,7 @@ class ArquivoPolicy
             if ($user->gerenciaPrograma($objeto->selecao->programa_id))
                 return true;
         } elseif (Gate::allows('perfildocente')) {
-            if ($user->gerenciaProgramaFuncao('Docentes do Programa', $objeto->selecao->programa_id))
+            if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $objeto->selecao->programa_id))
                 return true;
         } elseif (Gate::allows('perfilusuario')) {
             $autor_objeto = $objeto->pessoas('Autor');
@@ -68,15 +68,15 @@ class ArquivoPolicy
                     return true;
         } elseif (Gate::allows('perfildocente')) {
             foreach ($arquivo->solicitacoesisencaotaxa as $solicitacaoisencaotaxa)
-                if ($user->gerenciaProgramaFuncao('Docentes do Programa', $solicitacaoisencaotaxa->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $solicitacaoisencaotaxa->selecao->programa_id))
                     return true;
 
             foreach ($arquivo->inscricoes as $inscricao)
-                if ($user->gerenciaProgramaFuncao('Docentes do Programa', $inscricao->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $inscricao->selecao->programa_id))
                     return true;
 
             foreach ($arquivo->matriculas as $matricula)
-                if ($user->gerenciaProgramaFuncao('Docentes do Programa', $matricula->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $matricula->selecao->programa_id))
                     return true;
         } elseif (Gate::allows('perfilusuario')) {
             foreach ($arquivo->solicitacoesisencaotaxa as $solicitacaoisencaotaxa) {

@@ -230,7 +230,7 @@ class User extends Authenticatable
         if ((session('perfil') == 'admin') ||
             ($this->funcoes()
                  ->whereNull('user_funcao.programa_id')
-                 ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                 ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                  ->exists()))
             return Programa::all();
         else
@@ -260,15 +260,15 @@ class User extends Authenticatable
 
         return $this->funcoes()
                     ->whereNull('user_funcao.programa_id')
-                    ->whereIn('funcoes.nome', ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação'])
+                    ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                     ->exists();
     }
 
-    public function gerenciaProgramaFuncao(string $funcao_nome, ?int $programa_id = null)
+    public function gerenciaProgramaGrupoFuncao(string $grupo_funcao_nome, ?int $programa_id = null)
     {
-        $funcao = Funcao::where('nome', $funcao_nome)->first();
+        $funcao = Funcao::where('grupo', $grupo_funcao_nome)->first();
 
-        if (in_array($funcao->nome, ['Serviço de Pós-Graduação', 'Coordenadores(as) da Pós-Graduação']))
+        if (in_array($funcao->grupo, ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']))
             return $this->funcoes()
                         ->whereNull('user_funcao.programa_id')
                         ->where('funcoes.id', $funcao->id)
@@ -278,13 +278,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Accessor getter para funcao_maxima
+     * Accessor getter para grupo_funcao_maximo
      * Utilizado somente para quem é gerente ou docente
      */
-    public function getFuncaoMaximaAttribute()
+    public function getGrupoFuncaoMaximoAttribute()
     {
-        $funcao_mais_alta = $this->funcoes()->orderByDesc('peso')->first();
-        return $funcao_mais_alta ? $funcao_mais_alta->nome : null;
+        $grupo_funcao_mais_alto = $this->funcoes()->orderByDesc('peso')->first();
+        return $grupo_funcao_mais_alto ? $grupo_funcao_mais_alto->grupo : null;
     }
 
     /**

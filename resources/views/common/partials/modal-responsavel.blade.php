@@ -36,8 +36,8 @@
   <script type="text/javascript">
     $(document).ready(function() {
 
-      open_responsavel = function(id, funcao, programa_id = null) {
-        $.get('responsaveis/' + id + '/' + encodeURIComponent(funcao) + '/' + (programa_id !== null ? programa_id : '')
+      open_responsavel = function(id, grupo_funcao, programa_id = null) {
+        $.get('responsaveis/' + id + '/' + encodeURIComponent(grupo_funcao) + '/' + (programa_id !== null ? programa_id : '')
           , function(row) {
             console.log(row);
 
@@ -45,7 +45,7 @@
             $('#nome').val(row['name']);
             $('#telefone').val(row['telefone']);
 
-            if (funcao !== 'Secretários(as) do Programa')
+            if (grupo_funcao !== 'Secretários(as) do Programa')
               $('#row-telefone').hide();
             else
               $('#row-telefone').show();
