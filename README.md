@@ -39,13 +39,13 @@ Os possíveis fluxos de estados de seleções com cobrança de taxa e fluxo cont
 2) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa, das Inscrições e das Matrículas -> Período de Solicitações de Isenção de Taxa, de Inscrições e de Matrículas -> Encerrada
 3) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa e das Matrículas -> Período de Solicitações de Isenção de Taxa e de Matrículas -> Encerrada
 
-Há cinco funções para gestores: docentes do programa, secretários(as) dos programas, coordenadores(as) dos programas, serviço de pós-graduação e coordenadores(as) da pós-graduação.
-Gestores das três primeiras funções são atrelados aos programas. Eles podem acessar seleções, solicitações de isenção de taxa, inscrições e matrículas somente de seus programas associados.
-Gestores das duas últimas funções podem acessar todas as seleções, solicitações de isenção de taxa, inscrições e matrículas.
+Há cinco grupos de funções para gestores: docentes do programa, secretários(as) dos programas, coordenadores(as) dos programas, funcionários(as) do setor e coordenadores(as) do setor.
+Gestores dos três primeiros grupos de funções são atrelados aos programas. Eles podem acessar seleções, solicitações de isenção de taxa, inscrições e matrículas somente de seus programas associados.
+Gestores dos dois últimos grupos de funções podem acessar todas as seleções, solicitações de isenção de taxa, inscrições e matrículas.
 
-A função de docente corresponde ao perfil de docente. As funções de secretários(as) dos programas, coordenadores(as) dos programas, serviço de pós-graduação e coordenadores(as) da pós-graduação correspondem ao perfil de gerente. O conjunto de docentes, gerentes e admins forma o grupo de gestores.
+O grupo de função de docente corresponde ao perfil de docente. Os grupos de funções de secretários(as) dos programas, coordenadores(as) dos programas, funcionários(as) do setor e coordenadores(as) do setor correspondem ao perfil de gerente. O conjunto de docentes, gerentes e admins forma o grupo de gestores.
 Docentes têm acesso às inscrições e matrículas, mas somente de leitura.
-Os docentes são definidos na mesma tabela que os gerentes, mas com a função docentes dos programas. No caso de matrículas de seleções para alunos especiais, os docentes não têm acesso.
+Os docentes são definidos na mesma tabela que os gerentes, mas com o grupo de função docentes dos programas. No caso de matrículas de seleções para alunos especiais, os docentes não têm acesso.
 
 No caso de se utilizar o fluxo de matrículas para aluno especial, há uma fase inicial adicional em que o candidato entra em contato com o docente para obter sua aprovação (a secretaria de pós-graduação chama esse passo de "inscrição"); isso é feito por e-mail, fora deste sistema. Em seguida, o candidato solicita a isenção de taxa e, por fim, realiza sua matrícula (submissão de formulário e documentos à pós-graduação através deste sistema); a secretaria de pós-graduação realiza a matrícula dele no período de matrículas do sistema (esta é a matrícula propriamente dita, no Janus). Portanto, este sistema trata a segunda e a terceira fases do processo para aluno especial.
 
@@ -59,12 +59,11 @@ Além disso, em cada seleção o gerente também define quais documentos o candi
 O tipo de documento de boletos não é removível nem renomeável. O candidato não sobe documento desse tipo, pois ele é gerado quando do envio ou aprovação da inscrição ou matrícula, dependendo de como o sistema está configurado.
 Inscrições e matrículas para programas podem ser de três níveis diferentes (mestrado, doutorado ou doutorado direto) e os tipos de documento dessas inscrições podem variar conforme o nível e o programa. Tipos de documento com diferenciação por níveis e programas é algo que só faz sentido nas inscrições e matrículas. Para que um tipo de documento apareça na solicitação de isenção de taxa, inscrição ou matrícula, devemos cadastrá-lo na relação de Tipos de Documento; devemos também cadastrar suas relações com combinações de nível com tipo de programa; por fim, devemos cadastrá-lo também na seleção em questão (como tipo de documento para solicitação de isenção de taxa, inscrição ou matrícula).
 
-Para completar a inscrição ou matrícula, o candidato deve clicar em Enviar Inscrição ou Enviar Matrícula.
-Se houver cobrança de taxa de inscrição ou matrícula para a seleção em questão, é gerado um boleto e enviado por e-mail para o candidato pagar essa taxa. A geração e envio do boleto ocorre no envio ou aprovação da inscrição/matrícula, conforme o sistema estiver configurado.
-No caso de aluno regular, é gerado um único boleto.
+Para completar a solicitação de isenção de taxa, inscrição ou matrícula, o candidato deve clicar em Enviar Solicitação, Enviar Inscrição ou Enviar Matrícula.
+No caso de inscrição ou matrícula, se houver cobrança de taxa para a seleção em questão, é gerado um boleto e enviado por e-mail para o candidato pagar essa taxa. A geração e envio do boleto ocorre no envio ou aprovação da inscrição/matrícula, conforme o sistema estiver configurado.
 No caso de aluno especial, é gerado um boleto para cada disciplina na qual ele se inscreveu, e enviado para o candidato um único e-mail com todos esses boletos anexados.
 Algumas informações necessárias para a geração de boletos se encontram na tabela "parametros", que é editável pelos admins em tela.
-Quando o sistema está configurado para gerar e enviar boleto no momento do envio da inscrição/matrícula, caso um candidato reenvie sua matrícula, e ela seja para uma seleção de categoria aluno especial, e as disciplinas para as quais ele está se matriculando tenham sido alteradas em relação ao envio anterior, o sistema irá gerar e enviar boletos para as novas disciplinas, além de marcar como boletos referentes a disciplinas removidas aqueles boletos que haviam sido gerados anteriormente e cujas disciplinas o candidato removeu nesse reenvio da matrícula.
+Quando o sistema está configurado para gerar e enviar boleto no momento do envio da inscrição ou matrícula, caso um candidato reenvie sua inscrição ou matrícula, e ela seja para uma seleção de categoria aluno especial, e as disciplinas para as quais ele está se inscrevendo ou matriculando tenham sido alteradas em relação ao envio anterior, o sistema irá gerar e enviar boletos para as novas disciplinas, além de marcar como boletos referentes a disciplinas removidas aqueles boletos que haviam sido gerados anteriormente e cujas disciplinas o candidato removeu nesse reenvio da inscrição ou matrícula.
 Quando o processo seletivo permite os fluxos tanto de inscrição quanto de matrícula, o sistema gera e envia boletos somente no fluxo de inscrição, não o fazendo no fluxo de matrícula.
 
 A lei 14.534/2023 estabeleceu que estrangeiros devem possuir CPF para cursar pós-graduação. Com base nisso, passamos a utilizar o CPF como identificador único de pessoas nas situações em que precisamos identificar a mesma pessoa tendo realizado ações em momentos diferentes. Antes nos baseávamos no usuário autor, o que poderia levar a erros caso um usuário solicitasse isenção de taxa, efetuasse inscrição ou matrícula para outro candidato.
@@ -82,8 +81,8 @@ A lei 14.534/2023 estabeleceu que estrangeiros devem possuir CPF para cursar pó
 9) quando um candidato envia sua inscrição ou matrícula, o sistema lhe envia um e-mail informando do sucesso e, se o sistema estiver configurado para enviar boleto no envio da inscrição/matrícula, o sistema anexa nesse e-mail o(s) boleto(s) a ser(em) pago(s);
 10) ainda quando um candidato a aluno regular envia sua inscrição (não matrícula!), o sistema também envia um e-mail para a secretaria do programa avisando sobre a inscrição;
 11) ainda quando um candidato a aluno regular envia sua inscrição (não matrícula!), o sistema também envia um e-mail para cada coordenador do programa avisando sobre a inscrição;
-12) ainda quando um candidato a aluno especial envia sua inscrição (não matrícula!), o sistema também envia um e-mail para cada pessoa do serviço de pós-graduação avisando sobre a matrícula;
-13) ainda quando um candidato envia sua matrícula (não inscrição!), o sistema também envia um e-mail para cada pessoa do serviço de pós-graduação avisando sobre a matrícula;
+12) ainda quando um candidato a aluno especial envia sua inscrição (não matrícula!), o sistema também envia um e-mail para cada pessoa do setor responsável avisando sobre a inscrição;
+13) ainda quando um candidato envia sua matrícula (não inscrição!), o sistema também envia um e-mail para cada pessoa do setor responsável avisando sobre a matrícula;
 14) quando um candidato reenvia sua inscrição ou matrícula alterando as disciplinas para as quais se inscreveu ou matriculou, o sistema lhe envia um e-mail informando do sucesso e, se o sistema estiver configurado para enviar boleto no envio da inscrição/matrícula, o sistema anexa nesse e-mail o(s) boleto(s) da(s) nova(s) disciplina(s);
 15) quando um gerente clica em enviar um boleto de uma inscrição ou matrícula, o sistema envia um e-mail para o candidato enviando o boleto (isso é interessante para o caso de eventualmente o envio do boleto ter falhado quando o candidato enviou sua inscrição ou matrícula);
 16) quando um gerente pré-aprova uma inscrição ou matrícula, o sistema envia um e-mail para o candidato avisando a respeito da pré-aprovação;
@@ -117,22 +116,23 @@ Praticamente para tudo que o sistema deve realizar, ele se baseia em qual é o f
 
 1) o candidato envia a inscrição;
 2) um e-mail é enviado ao candidato reconhecendo o envio da inscrição e, caso o sistema esteja configurado para enviar boleto no envio da inscrição, ele recebe junto o(s) eventual(is) boleto(s) da taxa de inscrição a pagar;
-3) um e-mail é enviado à secretaria do programa e aos coordenadores(as) do programa para pré-avaliar a inscrição;
-4) a secretaria do programa ou os coordenadores(as) do programa colocam a inscrição em pré-avaliação e depois a pré-aprovam ou pré-rejeitam;
-5) em caso de pré-aprovação, um e-mail é enviado ao candidato compartilhando o endereço no site da unidade para acompanhamento do processo pelos candidatos, na seção do programa correspondente ou aluno especial;
-6) em caso de pré-rejeição, um e-mail é enviado ao candidato avisando-o da pré-rejeição;
-7) a secretaria do programa coloca a inscrição em avaliação e depois a aprova ou rejeita;
-8) um e-mail é enviado ao candidato avisando da aprovação ou rejeição da inscrição e, caso seja aprovação, e caso o sistema esteja configurado para enviar boleto na aprovação da inscrição, ele recebe junto o(s) eventual(is) boleto(s) da taxa de inscrição a pagar.
+3) no caso de aluno regular, um e-mail é enviado à secretaria do programa e aos coordenadores(as) do programa para pré-avaliar a inscrição;
+4) no caso de aluno especial, um e-mail é enviado ao setor responsável para pré-avaliar a inscrição;
+5) a secretaria do programa, os(as) coordenadores(as) do programa ou o setor responsável colocam a inscrição em pré-avaliação e depois a pré-aprovam ou pré-rejeitam;
+6) em caso de pré-aprovação, um e-mail é enviado ao candidato compartilhando o endereço no site da unidade para acompanhamento do processo pelos candidatos, na seção do programa correspondente ou aluno especial;
+7) em caso de pré-rejeição, um e-mail é enviado ao candidato avisando-o da pré-rejeição;
+8) a secretaria do programa, os(as) coordenadores(as) do programa ou o setor responsável colocam a inscrição em avaliação e depois a aprovam ou rejeitam;
+9) um e-mail é enviado ao candidato avisando da aprovação ou rejeição da inscrição e, caso seja aprovação, e caso o sistema esteja configurado para enviar boleto na aprovação da inscrição, ele recebe junto o(s) eventual(is) boleto(s) da taxa de inscrição a pagar.
 
 # Fluxo 3: matrícula
 
 1) o candidato envia a matrícula;
 2) um e-mail é enviado ao candidato reconhecendo o envio da matrícula e, caso o sistema esteja configurado para enviar boleto no envio da matrícula, ele recebe junto o(s) eventual(is) boleto(s) da taxa de matrícula a pagar;
-3) um e-mail é enviado ao serviço de pós-graduação para pré-avaliar a matrícula;
-4) o serviço de pós-graduação coloca a matrícula em pré-avaliação e depois a pré-aprova ou pré-rejeita;
+3) um e-mail é enviado ao setor responsável para pré-avaliar a matrícula;
+4) o setor responsável coloca a matrícula em pré-avaliação e depois a pré-aprova ou pré-rejeita;
 5) em caso de pré-aprovação, um e-mail é enviado ao candidato compartilhando o endereço no site da unidade para acompanhamento do processo pelos candidatos, na seção do programa correspondente ou aluno especial;
 6) em caso de pré-rejeição, um e-mail é enviado ao candidato avisando-o da pré-rejeição;
-7) o serviço de pós-graduação coloca a matrícula em avaliação e depois a aprova ou rejeita;
+7) o setor responsável coloca a matrícula em avaliação e depois a aprova ou rejeita;
 8) um e-mail é enviado ao candidato avisando da aprovação ou rejeição da matrícula e, caso seja aprovação, e caso o sistema esteja configurado para enviar boleto na aprovação da matrícula, ele recebe junto o(s) eventual(is) boleto(s) da taxa de matrícula a pagar.
 
 ## Changelog
