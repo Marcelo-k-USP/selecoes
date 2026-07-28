@@ -35,7 +35,15 @@ class NivelLinhaPesquisa extends Model
     }
 
     /**
-     * relacionamento com nível
+     * uma combinação nível com linha de pesquisa/tema se relaciona com n seleções
+     */
+    public function selecoes()
+    {
+        return $this->belongsToMany('App\Models\Selecao', 'selecao_nivellinhapesquisa', 'nivellinhapesquisa_id', 'selecao_id')->withTimestamps();
+    }
+
+    /**
+     * uma combinação nível com linha de pesquisa se relaciona com um nível
      */
     public function nivel()
     {
@@ -43,18 +51,10 @@ class NivelLinhaPesquisa extends Model
     }
 
     /**
-     * relacionamento com linha de pesquisa
+     * uma combinação nível com linha de pesquisa/tema se relaciona com uma linha de pesquisa/tema
      */
     public function linhapesquisa()
     {
         return $this->belongsTo('App\Models\LinhaPesquisa', 'linhapesquisa_id');
-    }
-
-    /**
-     * relacionamento com seleções
-     */
-    public function selecoes()
-    {
-        return $this->belongsToMany('App\Models\Selecao', 'selecao_nivellinhapesquisa', 'nivellinhapesquisa_id', 'selecao_id')->withTimestamps();
     }
 }

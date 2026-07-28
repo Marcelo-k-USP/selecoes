@@ -243,7 +243,15 @@ class Matricula extends Model
     }
 
     /**
-     * relacionamento com arquivos
+     * uma matrícula se relaciona com uma seleção
+     */
+    public function selecao()
+    {
+        return $this->belongsTo(Selecao::class);
+    }
+
+    /**
+     * uma matrícula se relaciona com n arquivos
      */
     public function arquivos()
     {
@@ -251,18 +259,10 @@ class Matricula extends Model
     }
 
     /**
-     * relacionamento com users
+     * uma matrícula se relaciona com n users
      */
     public function users()
     {
-        return $this->belongsToMany('App\Models\User', 'user_matricula')->withTimestamps();
-    }
-
-    /**
-     * relacionamento com seleção
-     */
-    public function selecao()
-    {
-        return $this->belongsTo(Selecao::class);
+        return $this->belongsToMany('App\Models\User', 'user_matricula')->withPivot('papel')->withTimestamps();
     }
 }

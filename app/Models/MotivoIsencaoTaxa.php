@@ -58,7 +58,7 @@ class MotivoIsencaoTaxa extends Model
     }
 
     /**
-     * relacionamento com seleções
+     * um motivo de isenção de taxa se relaciona com n seleções
      */
     public function selecoes()
     {

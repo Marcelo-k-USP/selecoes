@@ -224,7 +224,15 @@ class SolicitacaoIsencaoTaxa extends Model
     }
 
     /**
-     * relacionamento com arquivos
+     * uma solicitação de isenção de taxa se relaciona com uma seleção
+     */
+    public function selecao()
+    {
+        return $this->belongsTo(Selecao::class);
+    }
+
+    /**
+     * uma solicitação de isenção de taxa se relaciona com n arquivos
      */
     public function arquivos()
     {
@@ -232,18 +240,10 @@ class SolicitacaoIsencaoTaxa extends Model
     }
 
     /**
-     * relacionamento com users
+     * uma solicitação de isenção de taxa se relaciona com n users
      */
     public function users()
     {
-        return $this->belongsToMany('App\Models\User', 'user_solicitacaoisencaotaxa', 'solicitacaoisencaotaxa_id', 'user_id')->withTimestamps();    // se eu não especificar o nome do campo como solicitacaoisencaotaxa_id, o Laravel vai pensar que é solicitacao_isencao_taxa_id, e vai dar erro
-    }
-
-    /**
-     * relacionamento com seleção
-     */
-    public function selecao()
-    {
-        return $this->belongsTo(Selecao::class);
+        return $this->belongsToMany('App\Models\User', 'user_solicitacaoisencaotaxa', 'solicitacaoisencaotaxa_id', 'user_id')->withPivot('papel')->withTimestamps();    // se eu não especificar o nome do campo como solicitacaoisencaotaxa_id, o Laravel vai pensar que é solicitacao_isencao_taxa_id, e vai dar erro
     }
 }

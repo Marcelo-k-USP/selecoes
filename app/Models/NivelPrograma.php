@@ -32,7 +32,7 @@ class NivelPrograma extends Model
     }
 
     /**
-     * relacionamento com nível
+     * uma combinação nível com programa se relaciona com um nível
      */
     public function nivel()
     {
@@ -40,7 +40,7 @@ class NivelPrograma extends Model
     }
 
     /**
-     * relacionamento com programa
+     * uma combinação nível com programa se relaciona com um programa
      */
     public function programa()
     {
@@ -48,7 +48,7 @@ class NivelPrograma extends Model
     }
 
     /**
-     * relacionamento com tipos de arquivo
+     * uma combinação nível com programa se relaciona com n tipos de arquivo
      */
     public function tiposarquivo()
     {

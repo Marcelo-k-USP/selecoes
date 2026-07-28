@@ -19,18 +19,18 @@ class Funcao extends Model
     ];
 
     /**
-     * relacionamento com users
-     */
-    public function users()
-    {
-        return $this->belongsToMany('App\Models\User', 'user_funcao', 'funcao_id', 'user_id')->withPivot('programa_id')->withTimestamps();
-    }
-
-    /**
-     * relacionamento com programas
+     * uma função se relaciona com n programas
      */
     public function programas()
     {
         return $this->belongsToMany('App\Models\Programa', 'user_funcao', 'funcao_id', 'programa_id')->withPivot('user_id')->withTimestamps();
+    }
+
+    /**
+     * uma função se relaciona com n users
+     */
+    public function users()
+    {
+        return $this->belongsToMany('App\Models\User', 'user_funcao', 'funcao_id', 'user_id')->withPivot('programa_id')->withTimestamps();
     }
 }

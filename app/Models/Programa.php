@@ -128,6 +128,11 @@ class Programa extends Model
         ];
     }
 
+    public function nomeCompleto()
+    {
+        return $this->nome . ' (' . $this->sigla . ')';
+    }
+
     public function fazInscricoes()
     {
         return str_contains($this->processos, 'Inscrição');
@@ -139,7 +144,7 @@ class Programa extends Model
     }
 
     /**
-     * Programa possui seleções
+     * um programa se relaciona com n seleções
      */
     public function selecoes()
     {
@@ -147,15 +152,7 @@ class Programa extends Model
     }
 
     /**
-     * Programa possui linhas de pesquisa/temas
-     */
-    public function linhaspesquisa()
-    {
-        return $this->hasMany('App\Models\LinhaPesquisa');
-    }
-
-    /**
-     * relacionamento com níveis
+     * um programa se relaciona com n níveis
      */
     public function niveis()
     {
@@ -163,23 +160,26 @@ class Programa extends Model
     }
 
     /**
-     * relacionamento com users
+     * um programa se relaciona com n linhas de pesquisa/temas
      */
-    public function users()
+    public function linhaspesquisa()
     {
-        return $this->belongsToMany('App\Models\User', 'user_funcao', 'programa_id', 'user_id')->withPivot('funcao_id')->withTimestamps();
+        return $this->hasMany('App\Models\LinhaPesquisa');
     }
 
     /**
-     * relacionamento com funções
+     * um programa se relaciona com n funções
      */
     public function funcoes()
     {
         return $this->belongsToMany('App\Models\Funcao', 'user_funcao', 'programa_id', 'funcao_id')->withPivot('user_id')->withTimestamps();
     }
 
-    public function nomeCompleto()
+    /**
+     * um programa se relaciona com n users
+     */
+    public function users()
     {
-        return $this->nome . ' (' . $this->sigla . ')';
+        return $this->belongsToMany('App\Models\User', 'user_funcao', 'programa_id', 'user_id')->withPivot('funcao_id')->withTimestamps();
     }
 }

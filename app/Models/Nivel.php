@@ -48,7 +48,7 @@ class Nivel extends Model
     }
 
     /**
-     * relacionamento com programas
+     * um nível se relaciona com n programas
      */
     public function programas()
     {
@@ -56,7 +56,7 @@ class Nivel extends Model
     }
 
     /**
-     * relacionamento com linhas de pesquisa
+     * um nível se relaciona com n linhas de pesquisa/temas
      */
     public function linhaspesquisa()
     {
