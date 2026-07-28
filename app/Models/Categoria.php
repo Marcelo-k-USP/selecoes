@@ -68,7 +68,7 @@ class Categoria extends Model
     }
 
     /**
-     * Categoria possui seleções
+     * uma categoria se relaciona com n seleções
      */
     public function selecoes()
     {
@@ -76,17 +76,7 @@ class Categoria extends Model
     }
 
     /**
-     * relacionamento com users
-     */
-    public function users()
-    {
-        return $this->belongsToMany('App\Models\User', 'user_categoria')
-            ->orderBy('users.name')
-            ->withTimestamps();
-    }
-
-    /**
-     * relacionamento com tipos de arquivo
+     * uma categoria se relaciona com n tipos de arquivo
      */
     public function tiposarquivo()
     {

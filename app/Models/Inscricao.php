@@ -243,7 +243,15 @@ class Inscricao extends Model
     }
 
     /**
-     * relacionamento com arquivos
+     * uma inscrição se relaciona com uma seleção
+     */
+    public function selecao()
+    {
+        return $this->belongsTo(Selecao::class);
+    }
+
+    /**
+     * uma inscrição se relaciona com n arquivos
      */
     public function arquivos()
     {
@@ -251,18 +259,10 @@ class Inscricao extends Model
     }
 
     /**
-     * relacionamento com users
+     * uma inscrição se relaciona com n users
      */
     public function users()
     {
-        return $this->belongsToMany('App\Models\User', 'user_inscricao')->withTimestamps();
-    }
-
-    /**
-     * relacionamento com seleção
-     */
-    public function selecao()
-    {
-        return $this->belongsTo(Selecao::class);
+        return $this->belongsToMany('App\Models\User', 'user_inscricao')->withPivot('papel')->withTimestamps();
     }
 }

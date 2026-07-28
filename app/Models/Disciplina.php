@@ -65,7 +65,7 @@ class Disciplina extends Model
     }
 
     /**
-     * relacionamento com seleções
+     * uma disciplina se relaciona com n seleções
      */
     public function selecoes()
     {

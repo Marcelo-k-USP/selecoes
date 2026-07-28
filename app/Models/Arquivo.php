@@ -21,7 +21,7 @@ class Arquivo extends Model
     }
 
     /**
-     * relacionamento com seleção
+     * um arquivo se relaciona com n seleções
      */
     public function selecoes()
     {
@@ -29,7 +29,7 @@ class Arquivo extends Model
     }
 
     /**
-     * relacionamento com solicitação de isenção de taxa
+     * um arquivo se relaciona com n solicitações de isenção de taxa
      */
     public function solicitacoesisencaotaxa()
     {
@@ -37,7 +37,7 @@ class Arquivo extends Model
     }
 
     /**
-     * relacionamento com inscrição
+     * um arquivo se relaciona com n inscrições
      */
     public function inscricoes()
     {
@@ -45,7 +45,7 @@ class Arquivo extends Model
     }
 
     /**
-     * relacionamento com matrícula
+     * um arquivo se relaciona com n matrículas
      */
     public function matriculas()
     {
@@ -53,7 +53,7 @@ class Arquivo extends Model
     }
 
     /**
-     * Relacionamento: arquivo tem um tipo de arquivo
+     * um arquivo se relaciona com um tipo de arquivo
      */
     public function tipoarquivo()
     {

@@ -278,42 +278,17 @@ class User extends Authenticatable
     }
 
     /**
-     * Accessor getter para grupo_funcao_maximo
-     * Utilizado somente para quem é gerente ou docente
+     * accessor getter para "grupo_funcao_maximo"
      */
     public function getGrupoFuncaoMaximoAttribute()
     {
+        // utilizado somente para quem é gerente ou docente
         $grupo_funcao_mais_alto = $this->funcoes()->orderByDesc('peso')->first();
         return $grupo_funcao_mais_alto ? $grupo_funcao_mais_alto->grupo : null;
     }
 
     /**
-     * Relacionamento n:n com solicitação de isenção de taxa:
-     */
-    public function solicitacoesisencaotaxa()
-    {
-        return $this->belongsToMany('App\Models\SolicitacaoIsencaoTaxa', 'user_solicitacaoisencaotaxa', 'user_id', 'solicitacaoisencaotaxa_id')->withTimestamps();    // se eu não especificar o nome do campo como solicitacaoisencaotaxa_id, o Laravel vai pensar que é solicitacao_isencao_taxa_id, e vai dar erro
-    }
-
-    /**
-     * Relacionamento n:n com inscrição:
-     */
-    public function inscricoes()
-    {
-        return $this->belongsToMany('App\Models\Inscricao', 'user_inscricao')->withTimestamps();
-    }
-
-    /**
-     * Relacionamento n:n com matrícula:
-     */
-    public function matriculas()
-    {
-        return $this->belongsToMany('App\Models\Matricula', 'user_matricula')->withTimestamps();
-    }
-
-    /**
-     * Relacionamento n:n com setor, atributo funcao:
-     *  - Gerente, Usuario
+     * um user se relaciona com n setores
      */
     public function setores()
     {
@@ -321,7 +296,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Relacionamento n:n com funções:
+     * um user se relaciona com n programas
+     */
+    public function programas()
+    {
+        return $this->belongsToMany('App\Models\Programa', 'user_funcao', 'user_id', 'programa_id')->withPivot('funcao_id')->withTimestamps();
+    }
+
+    /**
+     * um user se relaciona com n funções
      */
     public function funcoes()
     {
@@ -329,11 +312,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Relacionamento n:n com programas:
+     * um user se relaciona com n solicitações de isenção de taxa
      */
-    public function programas()
+    public function solicitacoesisencaotaxa()
     {
-        return $this->belongsToMany('App\Models\Programa', 'user_funcao', 'user_id', 'programa_id')->withPivot('funcao_id')->withTimestamps();
+        return $this->belongsToMany('App\Models\SolicitacaoIsencaoTaxa', 'user_solicitacaoisencaotaxa', 'user_id', 'solicitacaoisencaotaxa_id')->withPivot('papel')->withTimestamps();    // se eu não especificar o nome do campo como solicitacaoisencaotaxa_id, o Laravel vai pensar que é solicitacao_isencao_taxa_id, e vai dar erro
+    }
+
+    /**
+     * um user se relaciona com n inscrições
+     */
+    public function inscricoes()
+    {
+        return $this->belongsToMany('App\Models\Inscricao', 'user_inscricao', 'user_id', 'inscricao_id')->withPivot('papel')->withTimestamps();
+    }
+
+    /**
+     * um user se relaciona com n matrículas
+     */
+    public function matriculas()
+    {
+        return $this->belongsToMany('App\Models\Matricula', 'user_matricula', 'user_id', 'matricula_id')->withPivot('papel')->withTimestamps();
     }
 
     // este método é invocado pelo senhaunica-socialite, por isso é preciso que ele exista aqui

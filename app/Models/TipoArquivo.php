@@ -90,28 +90,6 @@ class TipoArquivo extends Model
     }
 
     /**
-     * MUTATOR: intercepta antes de salvar no banco
-     * se vier 'Sim' ou 'Condicional', grava 1; senão, grava 0
-     */
-    public function setObrigatorioAttribute($value)
-    {
-        $this->attributes['obrigatorio'] = (($value === 'Sim') || ($value === 'Condicional')) ? 1 : 0;
-    }
-
-    /**
-     * Accessor getter para Obrigatorio
-     * intercepta quando lê do banco para a tela
-     * se for 1 e o campo de condição estiver preenchido, devolve 'Condicional' para o <select> marcar certo
-     */
-    public function getObrigatorioAttribute($value)
-    {
-        if ($value == 1)
-            return !empty($this->obrigatorio_condicao_campo) ? 'Condicional' : 'Sim';
-
-        return 'Não';
-    }
-
-    /**
      * Verifica se o tipo de arquivo é obrigatório, considerando tanto a obrigatoriedade incondicional quanto uma eventual obrigatoriedade condicional (baseada no JSON do campo extras)
      */
     public function isObrigatorio($extras)
@@ -274,7 +252,37 @@ class TipoArquivo extends Model
     }
 
     /**
-     * relacionamento com seleções
+     * accessor setter para "obrigatorio"
+     */
+    public function setObrigatorioAttribute($value)
+    {
+        // se vier 'Sim' ou 'Condicional', grava 1; senão, grava 0
+        $this->attributes['obrigatorio'] = (($value === 'Sim') || ($value === 'Condicional')) ? 1 : 0;
+    }
+
+    /**
+     * accessor getter para "obrigatorio"
+     */
+    public function getObrigatorioAttribute($value)
+    {
+        // * intercepta quando lê do banco para a tela
+        // se for 1 e o campo de condição estiver preenchido, devolve 'Condicional' para o <select> marcar certo
+        if ($value == 1)
+            return !empty($this->obrigatorio_condicao_campo) ? 'Condicional' : 'Sim';
+
+        return 'Não';
+    }
+
+    /*
+     * um tipo de arquivo se relaciona com n  categorias
+     */
+    public function categorias()
+    {
+        return $this->belongsToMany('App\Models\Categoria', 'tipoarquivo_categoria', 'tipoarquivo_id', 'categoria_id')->withTimestamps();
+    }
+
+    /**
+     * um tipo de arquivo se relaciona com n seleções
      */
     public function selecoes()
     {
@@ -282,7 +290,7 @@ class TipoArquivo extends Model
     }
 
     /**
-     * relacionamento com combinações de níveis com programas
+     * um tipo de arquivo se relaciona com n combinações de níveis com programas
      */
     public function niveisprogramas()
     {
@@ -290,18 +298,10 @@ class TipoArquivo extends Model
     }
 
     /**
-     * relacionamento com arquivos
+     * um tipo de arquivo se relaciona com n arquivos
      */
     public function arquivos()
     {
         return $this->hasMany('App\Models\Arquivo', 'tipoarquivo_id');
-    }
-
-    /*
-     * relacionamento com categorias
-     */
-    public function categorias()
-    {
-        return $this->belongsToMany('App\Models\Categoria', 'tipoarquivo_categoria', 'tipoarquivo_id', 'categoria_id')->withTimestamps();
     }
 }

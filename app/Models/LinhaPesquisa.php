@@ -79,7 +79,17 @@ class LinhaPesquisa extends Model
     }
 
     /**
-     * Relacionamento: linha de pesquisa/tema pertence a programa
+     * accessor getter para "selecoes"
+     */
+    public function getSelecoesAttribute()
+    {
+        return $this->niveislinhaspesquisa->flatMap(function ($nivelLinhaPesquisa) {
+            return $nivelLinhaPesquisa->selecoes;
+        })->unique('id')->values();
+    }
+
+    /**
+     * uma linha de pesquisa/tema se relaciona com um programa
      */
     public function programa()
     {
@@ -87,7 +97,7 @@ class LinhaPesquisa extends Model
     }
 
     /**
-     * relacionamento com níveis
+     * uma linha de pesquisa/tema se relaciona com n níveis
      */
     public function niveis()
     {
@@ -95,20 +105,10 @@ class LinhaPesquisa extends Model
     }
 
     /**
-     * relacionamento com combinações de níveis com linhas de pesquisa/temas
+     * uma linha de pesquisa/tema se relaciona com n combinações de níveis com linhas de pesquisa/temas
      */
     public function niveislinhaspesquisa()
     {
         return $this->hasMany('App\Models\NivelLinhaPesquisa', 'linhapesquisa_id');
-    }
-
-    /**
-     * Accessor getter para selecoes
-     */
-    public function getSelecoesAttribute()
-    {
-        return $this->niveislinhaspesquisa->flatMap(function ($nivelLinhaPesquisa) {
-            return $nivelLinhaPesquisa->selecoes;
-        })->unique('id')->values();
     }
 }

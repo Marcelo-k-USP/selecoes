@@ -824,6 +824,46 @@ class Selecao extends Model
         Selecao::observe(SelecaoObserver::class);
     }
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->injetarUnidadeNosTemplates();
+    }
+
+    // como os templates são protegidos, precisamos de um método para inserir os termos variáveis da unidade
+    private function injetarUnidadeNosTemplates()
+    {
+        $this->injetarUnidadeNoTemplate('SolicitacaoIsencaoTaxa');
+        $this->injetarUnidadeNoTemplate('Inscricao');
+        $this->injetarUnidadeNoTemplate('Matricula');
+    }
+
+    private function injetarUnidadeNoTemplate(string $classe_nome)
+    {
+        $template_nome = 'template_' . ClasseUtils::obterClasseNomePlural($classe_nome);
+
+        if (empty($this->attributes[$template_nome]))
+            return;
+
+        $this->attributes[$template_nome] = str_replace(
+            '{{UNIDADE_LINK_INSCRICAO_TERMOS}}',
+            Parametro::first()->link_inscricao_termos ?? '#',
+            $this->attributes[$template_nome]
+        );
+
+        $this->attributes[$template_nome] = str_replace(
+            '{{UNIDADE_GENERO}}',
+            Estrutura::obterUnidade(config('senhaunica.codigoUnidade'))['artttm'] ?? 'o(a)',
+            $this->attributes[$template_nome]
+        );
+
+        $this->attributes[$template_nome] = str_replace(
+            '{{UNIDADE_NOME}}',
+            Estrutura::obterUnidade(config('senhaunica.codigoUnidade'))['nomund'] ?? 'Unidade',
+            $this->attributes[$template_nome]
+        );
+    }
+
     // uso no crud generico
     public static function getFields()
     {
@@ -875,45 +915,6 @@ class Selecao extends Model
                 'Aguardando Início das Inscrições', 'Periodo de Inscrições',
                 'Aguardando Início das Matrículas', 'Periodo de Matrículas',
                 'Encerrada'];
-    }
-
-    /**
-     * Accessor getter para config
-     */
-    public function getConfigAttribute(string $value)
-    {
-        $value = json_decode($value);
-
-        $out = new \StdClass;
-        $out->status = $value->status ?? config('selecoes.config.status');
-        return $out;
-    }
-
-    /**
-     * Accessor setter para config
-     */
-    public function setConfigAttribute(string|array $value)
-    {
-        // quando este método é invocado pelo seeder, $value vem como string JSON
-        // quando este método é invocado pelo MVC, $value vem como array
-
-        if (is_string($value)) {
-            $value_decoded = json_decode($value, true); // Decodifica como array associativo
-            if (is_array($value_decoded) && (json_last_error() == JSON_ERROR_NONE))
-                $value = $value_decoded;    // se $value veio como string JSON, vamos utilizar $value_decoded, de modo a poder acessá-lo mais abaixo como array
-        }
-
-        $config = new \StdClass;
-        $config->status = $value['status'];
-        $this->attributes['config'] = json_encode($config);
-    }
-
-    /**
-     * Accessor getter para template
-     */
-    public function getTemplateAttribute(string $value)
-    {
-        return (empty($value)) ? '{}' : $value;
     }
 
     /**
@@ -1128,46 +1129,6 @@ class Selecao extends Model
         return Matricula::contarMatriculasPorMes($ano, $this);
     }
 
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-        $this->injetarUnidadeNosTemplates();
-    }
-
-    // como os templates são protegidos, precisamos de um método para inserir os termos variáveis da unidade
-    private function injetarUnidadeNosTemplates()
-    {
-        $this->injetarUnidadeNoTemplate('SolicitacaoIsencaoTaxa');
-        $this->injetarUnidadeNoTemplate('Inscricao');
-        $this->injetarUnidadeNoTemplate('Matricula');
-    }
-
-    private function injetarUnidadeNoTemplate(string $classe_nome)
-    {
-        $template_nome = 'template_' . ClasseUtils::obterClasseNomePlural($classe_nome);
-
-        if (empty($this->attributes[$template_nome]))
-            return;
-
-        $this->attributes[$template_nome] = str_replace(
-            '{{UNIDADE_LINK_INSCRICAO_TERMOS}}',
-            Parametro::first()->link_inscricao_termos ?? '#',
-            $this->attributes[$template_nome]
-        );
-
-        $this->attributes[$template_nome] = str_replace(
-            '{{UNIDADE_GENERO}}',
-            Estrutura::obterUnidade(config('senhaunica.codigoUnidade'))['artttm'] ?? 'o(a)',
-            $this->attributes[$template_nome]
-        );
-
-        $this->attributes[$template_nome] = str_replace(
-            '{{UNIDADE_NOME}}',
-            Estrutura::obterUnidade(config('senhaunica.codigoUnidade'))['nomund'] ?? 'Unidade',
-            $this->attributes[$template_nome]
-        );
-    }
-
     /**
      * Retorna os ids das últimas seleções de cada programa, mais o id da última seleção de aluno especial
      */
@@ -1254,63 +1215,54 @@ class Selecao extends Model
     }
 
     /**
-     * Seleção possui Solicitações de Isenção de Taxa
+     * accessor getter para "config"
      */
-    public function solicitacoesisencaotaxa()
+    public function getConfigAttribute(string $value)
     {
-        return $this->hasMany('App\Models\SolicitacaoIsencaoTaxa');
+        $value = json_decode($value);
+
+        $out = new \StdClass;
+        $out->status = $value->status ?? config('selecoes.config.status');
+        return $out;
     }
 
     /**
-     * Seleção possui Inscrições
+     * accessor setter para "config"
      */
-    public function inscricoes()
+    public function setConfigAttribute(string|array $value)
     {
-        return $this->hasMany('App\Models\Inscricao');
+        // quando este método é invocado pelo seeder, $value vem como string JSON
+        // quando este método é invocado pelo MVC, $value vem como array
+
+        if (is_string($value)) {
+            $value_decoded = json_decode($value, true); // Decodifica como array associativo
+            if (is_array($value_decoded) && (json_last_error() == JSON_ERROR_NONE))
+                $value = $value_decoded;    // se $value veio como string JSON, vamos utilizar $value_decoded, de modo a poder acessá-lo mais abaixo como array
+        }
+
+        $config = new \StdClass;
+        $config->status = $value['status'];
+        $this->attributes['config'] = json_encode($config);
     }
 
     /**
-     * Seleção possui Matrículas
+     * accessor getter para "template"
      */
-    public function matriculas()
+    public function getTemplateAttribute(string $value)
     {
-        return $this->hasMany('App\Models\Matricula');
+        return (empty($value)) ? '{}' : $value;
     }
 
     /**
-     * relacionamento com arquivos
+     * accessor getter para "linhaspesquisa"
      */
-    public function arquivos()
+    public function getLinhaspesquisaAttribute()
     {
-        return $this->belongsToMany('App\Models\Arquivo', 'arquivo_selecao')->withPivot('tipo')->withTimestamps();
+        return $this->niveislinhaspesquisa->pluck('linhapesquisa')->unique('id')->values();
     }
 
     /**
-     * relacionamento com disciplinas
-     */
-    public function disciplinas()
-    {
-        return $this->belongsToMany('App\Models\Disciplina', 'selecao_disciplina', 'selecao_id', 'disciplina_id')->withTimestamps();
-    }
-
-    /**
-     * relacionamento com motivos de isenção de taxa
-     */
-    public function motivosisencaotaxa()
-    {
-        return $this->belongsToMany('App\Models\MotivoIsencaoTaxa', 'selecao_motivoisencaotaxa', 'selecao_id', 'motivoisencaotaxa_id')->withTimestamps();
-    }
-
-    /**
-     * relacionamento com tipos de arquivo
-     */
-    public function tiposarquivo()
-    {
-        return $this->belongsToMany('App\Models\TipoArquivo', 'selecao_tipoarquivo', 'selecao_id', 'tipoarquivo_id')->withTimestamps();
-    }
-
-    /**
-     * Relacionamento: seleção pertence a categoria
+     * uma seleção se relaciona com uma categoria
      */
     public function categoria()
     {
@@ -1318,7 +1270,7 @@ class Selecao extends Model
     }
 
     /**
-     * Relacionamento: seleção pertence a programa
+     * uma seleção se relaciona com um programa
      */
     public function programa()
     {
@@ -1326,7 +1278,31 @@ class Selecao extends Model
     }
 
     /**
-     * relacionamento com combinações de níveis com linhas de pesquisa/temas
+     * uma seleção se relaciona com n solicitações de isenção de taxa
+     */
+    public function solicitacoesisencaotaxa()
+    {
+        return $this->hasMany('App\Models\SolicitacaoIsencaoTaxa');
+    }
+
+    /**
+     * uma seleção se relaciona com n inscrições
+     */
+    public function inscricoes()
+    {
+        return $this->hasMany('App\Models\Inscricao');
+    }
+
+    /**
+     * uma seleção se relaciona com n matrículas
+     */
+    public function matriculas()
+    {
+        return $this->hasMany('App\Models\Matricula');
+    }
+
+    /**
+     * uma seleção se relaciona com n linhas de pesquisa/temas
      */
     public function niveislinhaspesquisa()
     {
@@ -1334,10 +1310,34 @@ class Selecao extends Model
     }
 
     /**
-     * Accessor getter para linhaspesquisa
+     * uma seleção se relaciona com n disciplinas
      */
-    public function getLinhaspesquisaAttribute()
+    public function disciplinas()
     {
-        return $this->niveislinhaspesquisa->pluck('linhapesquisa')->unique('id')->values();
+        return $this->belongsToMany('App\Models\Disciplina', 'selecao_disciplina', 'selecao_id', 'disciplina_id')->withTimestamps();
+    }
+
+    /**
+     * uma seleção se relaciona com n motivos de isenção de taxa
+     */
+    public function motivosisencaotaxa()
+    {
+        return $this->belongsToMany('App\Models\MotivoIsencaoTaxa', 'selecao_motivoisencaotaxa', 'selecao_id', 'motivoisencaotaxa_id')->withTimestamps();
+    }
+
+    /**
+     * uma seleção se relaciona com n tipos de arquivo
+     */
+    public function tiposarquivo()
+    {
+        return $this->belongsToMany('App\Models\TipoArquivo', 'selecao_tipoarquivo', 'selecao_id', 'tipoarquivo_id')->withTimestamps();
+    }
+
+    /**
+     * uma seleção se relaciona com n arquivos
+     */
+    public function arquivos()
+    {
+        return $this->belongsToMany('App\Models\Arquivo', 'arquivo_selecao')->withPivot('tipo')->withTimestamps();
     }
 }
