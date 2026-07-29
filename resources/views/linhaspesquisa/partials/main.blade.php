@@ -3,9 +3,9 @@
     <span class="h4 mt-2">Linhas de Pesquisa/Temas</span>
     @can('linhaspesquisa.create')
       &nbsp; &nbsp;
-      <a href="{{ route('linhaspesquisa.create') }}" class="btn btn-sm btn-success">
-        <i class="fas fa-plus"></i> Novo(a)
-      </a>
+      <button type="button" class="btn btn-sm btn-success" onclick="add_form()">
+        <i class="fas fa-plus"></i> Nova
+      </button>
     @endcan
   </div>
 </div>
@@ -27,7 +27,7 @@
     @endif
     {{-- Mostra o conteúdo de uma linha de pesquisa/tema --}}
     <tr>
-      <td>&nbsp;</td>
+      <td style="width: 20px;">&nbsp;</td>
       <td>
         <div>
           <a name="{{ \Str::lower($linhapesquisa->id) }}" class="font-weight-bold" style="text-decoration: none;">{{ $linhapesquisa->nome }}</a>

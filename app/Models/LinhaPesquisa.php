@@ -67,15 +67,18 @@ class LinhaPesquisa extends Model
      */
     public static function listarLinhasPesquisa()
     {
-        return self::with('programa')
+        $linhaspesquisa = self::with('programa')
             ->whereIn('programa_id', \Auth::user()->listarProgramasGerenciados()->pluck('id'))    // linhas de pesquisa/temas de programas que o usuário gerencia, e também...
             ->orWhere(function ($query) {
                 if (session('perfil') == 'admin')
                     $query->whereNotNull('id');
             })
-            ->orderBy('programa_id')
-            ->orderBy('id')
             ->get();
+
+        return $linhaspesquisa->sortBy([
+            ['programa.sigla', 'asc'],
+            ['nome', 'asc'],
+        ])->values();
     }
 
     /**

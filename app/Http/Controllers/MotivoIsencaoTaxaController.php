@@ -117,7 +117,7 @@ class MotivoIsencaoTaxaController extends Controller
 
     private function monta_compact_index()
     {
-        $motivosisencaotaxa = MotivoIsencaoTaxa::all();
+        $motivosisencaotaxa = MotivoIsencaoTaxa::listarMotivosIsencaoTaxa();
         $fields = MotivoIsencaoTaxa::getFields();
         $modal['url'] = 'motivosisencaotaxa';
         $modal['title'] = 'Editar Motivo de Isenção de Taxa';

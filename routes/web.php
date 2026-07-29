@@ -134,9 +134,6 @@ Route::resource('programas', ProgramaController::class);
 
 // LINHAS DE PESQUISA/TEMAS
 Route::resource('linhaspesquisa', LinhaPesquisaController::class);
-Route::post('linhaspesquisa/create', [LinhaPesquisaController::class, 'store']);
-Route::get('linhaspesquisa/edit/{linhapesquisa}', [LinhaPesquisaController::class, 'edit']);
-Route::put('linhaspesquisa/edit/{linhapesquisa}', [LinhaPesquisaController::class, 'update']);
 
 // LINHAS DE PESQUISA/TEMAS > NÍVEIS
 Route::post('linhaspesquisa/{linhapesquisa}/niveis', [LinhaPesquisaController::class, 'storeNivel']);

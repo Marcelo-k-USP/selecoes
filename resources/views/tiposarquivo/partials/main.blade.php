@@ -27,7 +27,7 @@
     @endif
     {{-- Mostra o conteúdo de um tipo de arquivo --}}
     <tr>
-      <td>&nbsp;</td>
+      <td style="width: 20px;">&nbsp;</td>
       <td>
         <div>
           <a name="{{ \Str::lower($tipoarquivo->id) }}" class="font-weight-bold" style="text-decoration: none;">{{ $tipoarquivo->nome }}</a>
