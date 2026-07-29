@@ -280,7 +280,7 @@ class TipoArquivoController extends Controller
                 WHEN classe_nome = 'Matrículas'                      THEN 4
                 ELSE 5
             END
-        ")->orderBy('id')->get();
+        ")->orderBy('nome')->get();
         $fields = TipoArquivo::getFields();
         $modal['url'] = 'tiposarquivo';
         $modal['title'] = 'Editar Tipo de Documento';

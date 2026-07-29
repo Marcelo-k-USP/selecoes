@@ -203,7 +203,7 @@ class TipoArquivo extends Model
                         $query->whereHas('niveisprogramas', function ($query) use ($niveis, $programa_id, $selecao) {
                             $query->whereIn('nivel_id', function ($query) use ($niveis) {
                                 $query->select('id')->from('niveis')->whereIn('nome', $niveis->pluck('nome'));
-                            })->when($selecao->exigePrograma(), function ($query, $programa_id) {
+                            })->when($selecao->exigePrograma(), function ($query) use ($programa_id) {
                                 $query->where('programa_id', $programa_id);
                             });
                         });
@@ -221,7 +221,7 @@ class TipoArquivo extends Model
                         $query->whereHas('niveisprogramas', function ($query) use ($niveis, $programa_id, $selecao) {
                             $query->whereIn('nivel_id', function ($query) use ($niveis) {
                                 $query->select('id')->from('niveis')->whereIn('nome', $niveis->pluck('nome'));
-                            })->when($selecao->exigePrograma(), function ($query, $programa_id) {
+                            })->when($selecao->exigePrograma(), function ($query) use ($programa_id) {
                                 $query->where('programa_id', $programa_id);
                             });
                         });

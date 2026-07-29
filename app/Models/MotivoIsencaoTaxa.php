@@ -54,7 +54,7 @@ class MotivoIsencaoTaxa extends Model
 
     public static function listarMotivosIsencaoTaxa()
     {
-        return self::get();
+        return self::orderBy('nome')->get();
     }
 
     /**

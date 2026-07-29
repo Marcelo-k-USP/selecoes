@@ -85,6 +85,16 @@ class Programa extends Model
         return $ret;
     }
 
+    /**
+     * Menu Programas, lista os programas
+     *
+     * @return coleção de programas
+     */
+    public static function listarProgramas()
+    {
+        return self::orderBy('sigla')->get();
+    }
+
     public function obterPessoasFuncao(string $funcao_nome)
     {
         $funcao = Funcao::where('nome', $funcao_nome)->first();

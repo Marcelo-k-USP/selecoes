@@ -132,7 +132,7 @@ class ProgramaController extends Controller
 
     private function monta_compact_index()
     {
-        $programas = Programa::all();
+        $programas = Programa::listarProgramas();
         $fields = Programa::getFields();
         $modal['url'] = 'programas';
         $modal['title'] = 'Editar Programa';

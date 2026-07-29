@@ -4,6 +4,7 @@
 @parent
   @if ($linhaspesquisa != null)
     @include('linhaspesquisa.partials.main')
+    @include('linhaspesquisa.partials.modal')
   @else
     Sem linhas de pesquisa/temas
   @endif
@@ -16,7 +17,7 @@
       if (location.hash) {    // se houver anchor na url, vamos abrir os detalhes
         $('#detalhes_' + location.hash.substring(1)).collapse('show');
         console.log('abrindo #detalhes_' + window.location.hash.substring(1));
-      };
+      }
 
       $("[data-collapse-group='myDivs']").click(function() {
         var $this = $(this);
