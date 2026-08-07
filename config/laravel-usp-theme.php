@@ -41,6 +41,11 @@ $matriculas = [
 
 $admin = [
     [
+        'text' => '<i class="fas fa-cogs"></i> Vínculos',
+        'url' => 'vinculos',
+        'can' => 'vinculos.viewAny',
+    ],
+    [
         'text' => '<i class="fas fa-boxes"></i> Categorias',
         'url' => 'categorias',
         'can' => 'categorias.viewAny',
@@ -72,12 +77,7 @@ $admin = [
     ],
     [
         'type' => 'divider',
-        'can'=> 'parametros.viewAny'
-    ],
-    [
-        'text' => '<i class="fas fa-cogs"></i> Parâmetros',
-        'url' => 'parametros',
-        'can' => 'parametros.viewAny',
+        'can'=> 'funcoes.viewAny'
     ],
     [
         'text' => '<i class="fas fa-users-cog"></i> Funções',
@@ -91,7 +91,7 @@ $admin = [
     ],
     [
         'type' => 'divider',
-        'can'=> 'parametros.viewAny'
+        'can'=> 'limpezadados.showForm'
     ],
     [
         'text' => '<i class="fa fa-trash-alt"></i> Limpeza de Dados',

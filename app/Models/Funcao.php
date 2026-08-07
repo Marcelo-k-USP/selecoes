@@ -19,6 +19,14 @@ class Funcao extends Model
     ];
 
     /**
+     * uma função se relaciona com n vínculos
+     */
+    public function vinculos()
+    {
+        return $this->belongsToMany('App\Models\Vinculo', 'funcao_vinculo', 'funcao_id', 'vinculo_id')->withTimestamps();
+    }
+
+    /**
      * uma função se relaciona com n programas
      */
     public function programas()

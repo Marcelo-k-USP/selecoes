@@ -157,20 +157,25 @@ class Inscricao extends Model
                 break;
 
             case 'gerente':
+                $vinculosIds = Auth::user()->funcoes()->with('vinculos')->get()->pluck('vinculos.*.id')->flatten()->unique();
                 if (Auth::user()->funcoes()
                         ->whereNull('user_funcao.programa_id')
                         ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                         ->exists())
-                    $inscricoes = self::with('selecao')->get();
-                else
-                    $inscricoes = self::with('selecao')->whereHas('selecao', function ($query) {
-                        $query->whereIn('programa_id', Auth::user()->listarProgramasGerenciados()->pluck('id'));
+                    $inscricoes = self::with('selecao')->whereHas('selecao', function ($query) use ($vinculosIds) { $query->whereIn('vinculo_id', $vinculosIds); })->get();
+                else {
+                    $programasIds = Auth::user()->listarProgramasGerenciados()->pluck('id');
+                    $inscricoes = self::with('selecao')->whereHas('selecao', function ($query) use ($programasIds, $vinculosIds) {
+                        $query->whereIn('programa_id', $programasIds)->whereIn('vinculo_id', $vinculosIds);
                     })->get();
+                }
                 break;
 
             case 'docente':
-                $inscricoes = self::with('selecao')->whereHas('selecao', function ($query) {
-                    $query->whereIn('programa_id', Auth::user()->listarProgramasGerenciadosFuncao('Docentes do Programa')->pluck('id'));
+                $vinculosIds = Auth::user()->funcoes()->with('vinculos')->get()->pluck('vinculos.*.id')->flatten()->unique();
+                $programasIds = Auth::user()->listarProgramasGerenciadosFuncao('Docentes do Programa')->pluck('id');
+                $inscricoes = self::with('selecao')->whereHas('selecao', function ($query) use ($programasIds, $vinculosIds) {
+                    $query->whereIn('programa_id', $programasIds)->whereIn('vinculo_id', $vinculosIds);
                 })->get();
                 break;
 
@@ -225,6 +230,18 @@ class Inscricao extends Model
     }
 
     public bool $boletoFoiGerado = false;    // não persistido em banco, vive apenas enquanto durar esta instância do objeto em memória (tipicamente: InscricaoController, save(), InscricaoOserver, BoletoService, e volta para InscricaoController, e então a instância do objeto é destruída)
+
+    /**
+     * accessor getter para "orientador"
+     */
+    public function getOrientadorAttribute()
+    {
+        $orientador_id = json_decode($this->extras, true)['orientador'] ?? null;
+        if (!$orientador_id)
+            return null;
+
+        return User::find($orientador_id)?->name;
+    }
 
     /**
      * Mostra as pessoas que têm vínculo com a inscrição

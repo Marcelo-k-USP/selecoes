@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Models\Categoria;
-use App\Models\Parametro;
 use App\Models\Programa;
 use App\Models\Selecao;
 use Illuminate\Foundation\Http\FormRequest;
@@ -29,8 +28,9 @@ class SelecaoRequest extends FormRequest
         // o Laravel invoca prepareForValidation automaticamente neste ponto
 
         return [
+            'vinculo_id' => ['required', 'numeric'],
             'categoria_id' => ['required_if:_categoria_required_marker,1', 'nullable', 'numeric'],
-            'programa_id' => ['required_unless:categoria_id,' . Categoria::where('nome', 'Aluno Especial')->value('id')],
+            'programa_id' => ['required_if:_programa_required_marker,1', 'nullable', 'numeric'],
             'ingresso_semestre' => ['required', 'integer', 'between:0,2'],
             'ingresso_ano' => ['required', 'integer', 'digits:4'],
             'descricao' => ['max:255'],
@@ -61,9 +61,12 @@ class SelecaoRequest extends FormRequest
 
     public function messages() {
         return [
+            'vinculo_id.required' => 'O vínculo é obrigatório!',
+            'vinculo_id.numeric' => 'O vínculo é inválido!',
             'categoria_id.required_if' => 'A categoria é obrigatória!',
             'categoria_id.numeric' => 'A categoria é inválida!',
-            'programa_id.required_unless' => 'O programa é obrigatório!',
+            'programa_id.required_if' => 'O programa é obrigatório!',
+            'programa_id.numeric' => 'O programa é inválido!',
             'descricao.max' => 'A descrição da seleção não pode exceder 255 caracteres!',
             'solicitacoesisencaotaxa_data_inicio.required_if' => 'A data de início das solicitações de isenção de taxa é obrigatória!',
             'solicitacoesisencaotaxa_hora_inicio.required_if' => 'A hora de início das solicitações de isenção de taxa é obrigatória!',
@@ -92,7 +95,8 @@ class SelecaoRequest extends FormRequest
     protected function prepareForValidation() {
         $selecao_temporaria = new Selecao($this->all());
         $this->merge([
-            '_categoria_required_marker' => Parametro::first()->exigeCategoria() ? 1 : 0,
+            '_categoria_required_marker' => $selecao_temporaria->exigeCategoria() ? 1 : 0,
+            '_programa_required_marker' => $selecao_temporaria->exigePrograma() ? 1 : 0,
             '_solicitacaoisencaotaxa_datas_required_marker' => ($this->input('tem_taxa') === 'on') ? 1 : 0,
             '_inscricao_datas_required_marker' => $selecao_temporaria->fazInscricoes() ? 1 : 0,
             '_matricula_datas_required_marker' => $selecao_temporaria->fazMatriculas() ? 1 : 0,

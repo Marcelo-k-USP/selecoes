@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoriaRequest;
 use App\Models\Categoria;
+use App\Models\Vinculo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Redirect;
@@ -41,7 +42,7 @@ class CategoriaController extends Controller
      */
     public function show(Request $request, string $id)
     {
-        Gate::authorize('categorias.viewAny');
+        Gate::authorize('categorias.view', Categoria::where('id', $id)->first());
 
         \UspTheme::activeUrl('categorias');
         if ($request->ajax())
@@ -61,6 +62,11 @@ class CategoriaController extends Controller
         $validator = Validator::make($request->all(), CategoriaRequest::rules, CategoriaRequest::messages);
         if ($validator->fails())
             return back()->withErrors($validator)->withInput();
+
+        $request->merge(['exige_programa' => $request->has('exige_programa')]);    // acerta o valor do campo "exige_programa" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_nivel' => $request->has('exige_nivel')]);    // acerta o valor do campo "exige_nivel" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_linhapesquisa' => $request->has('exige_linhapesquisa')]);    // acerta o valor do campo "exige_linhapesquisa" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_disciplinas' => $request->has('exige_disciplinas')]);    // acerta o valor do campo "exige_disciplinas" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
 
         $categoria = Categoria::create($request->all());
 
@@ -83,6 +89,11 @@ class CategoriaController extends Controller
         $validator = Validator::make($request->all(), CategoriaRequest::rules, CategoriaRequest::messages);
         if ($validator->fails())
             return back()->withErrors($validator)->withInput();
+
+        $request->merge(['exige_programa' => $request->has('exige_programa')]);    // acerta o valor do campo "exige_programa" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_nivel' => $request->has('exige_nivel')]);    // acerta o valor do campo "exige_nivel" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_linhapesquisa' => $request->has('exige_linhapesquisa')]);    // acerta o valor do campo "exige_linhapesquisa" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
+        $request->merge(['exige_disciplinas' => $request->has('exige_disciplinas')]);    // acerta o valor do campo "exige_disciplinas" (pois, se o usuário deixou false, o campo não vem no $request e, se o usuário deixou true, ele vem mas com valor null)
 
         $categoria = Categoria::find((int) $id);
         $categoria->fill($request->all());
@@ -117,12 +128,13 @@ class CategoriaController extends Controller
 
     private function monta_compact_index()
     {
+        $vinculos = Vinculo::listarVinculos();
         $categorias = Categoria::all();
         $fields = Categoria::getFields();
         $modal['url'] = 'categorias';
         $modal['title'] = 'Editar Categoria';
         $rules = CategoriaRequest::rules;
 
-        return compact('categorias', 'fields', 'modal', 'rules');
+        return compact('vinculos', 'categorias', 'fields', 'modal', 'rules');
     }
 }

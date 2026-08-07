@@ -6,6 +6,7 @@ use App\Http\Requests\TipoArquivoRequest;
 use App\Models\Categoria;
 use App\Models\NivelPrograma;
 use App\Models\TipoArquivo;
+use App\Models\Vinculo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -81,6 +82,8 @@ class TipoArquivoController extends Controller
             $tipoarquivo = TipoArquivo::create($request->all());
 
             if (in_array($tipoarquivo->classe_nome, ['Inscrições', 'Matrículas'])) {
+                foreach (Vinculo::all() as $vinculo)                // cadastra automaticamente todos os vínculos como possíveis para este tipo de arquivo
+                    $tipoarquivo->vinculos()->attach($vinculo->id);
                 foreach (Categoria::all() as $categoria)            // cadastra automaticamente todas as categorias como possíveis para este tipo de arquivo
                     $tipoarquivo->categorias()->attach($categoria->id);
                 foreach (NivelPrograma::all() as $nivelprograma)    // cadastra automaticamente todas as combinações de níveis com programas como possíveis para este tipo de arquivo
@@ -156,6 +159,8 @@ class TipoArquivoController extends Controller
             $request->session()->flash('alert-danger', 'Há seleções que usam este tipo de documento!');
         elseif ($tipoarquivo->arquivos()->exists())
             $request->session()->flash('alert-danger', 'Há arquivos armazenados deste tipo!');
+        elseif ($tipoarquivo->vinculos()->exists())
+            $request->session()->flash('alert-danger', 'Há vínculos que usam este tipo de documento!');
         elseif ($tipoarquivo->categorias()->exists())
             $request->session()->flash('alert-danger', 'Há categorias que usam este tipo de documento!');
         elseif ($tipoarquivo->niveisprogramas()->exists())
@@ -166,6 +171,57 @@ class TipoArquivoController extends Controller
         }
         \UspTheme::activeUrl('tiposarquivo');
         return view('tiposarquivo.tree', $this->monta_compact_index());
+    }
+
+    /**
+     * Adicionar vínculos relacionados ao tipo de arquivo
+     * autorizado a qualquer um que tenha acesso ao tipo de arquivo
+     * request->codpes = required, int
+     */
+    public function storeVinculo(Request $request, TipoArquivo $tipoarquivo)
+    {
+        Gate::authorize('tiposarquivo.update', $tipoarquivo);
+
+        $request->validate([
+            'id' => 'required',
+        ],
+        [
+            'id.required' => 'Vínculo obrigatório',
+        ]);
+
+        // transaction para não ter problema de inconsistência do DB
+        $db_transaction = DB::transaction(function () use ($request, $tipoarquivo) {
+
+            $vinculo = Vinculo::where('id', $request->id)->first();
+
+            $existia = $tipoarquivo->vinculos()->detach($vinculo);
+
+            $tipoarquivo->vinculos()->attach($vinculo);
+
+            return ['vinculo' => $vinculo, 'existia' => $existia];
+        });
+
+        if (!$db_transaction['existia'])
+            $request->session()->flash('alert-success', 'O vínculo ' . $db_transaction['vinculo']->nome . ' foi adicionado a esse tipo de documento');
+        else
+            $request->session()->flash('alert-info', 'O vínculo ' . $db_transaction['vinculo']->nome . ' já estava vinculado a esse tipo de documento');
+        \UspTheme::activeUrl('tiposarquivo');
+        return redirect()->to(url('tiposarquivo/edit/' . $tipoarquivo->id))->with($this->monta_compact($tipoarquivo, 'edit'));    // se fosse return view, um eventual F5 do usuário duplicaria o registro... POSTs devem ser com redirect
+    }
+
+    /**
+     * Remove vínculos relacionados ao tipo de arquivo
+     * $user = required
+     */
+    public function destroyVinculo(Request $request, TipoArquivo $tipoarquivo, Vinculo $vinculo)
+    {
+        Gate::authorize('tiposarquivo.update', $tipoarquivo);
+
+        $tipoarquivo->vinculos()->detach($vinculo);
+
+        $request->session()->flash('alert-success', 'O vínculo ' . $vinculo->nome . ' foi removido desse tipo de documento');
+        \UspTheme::activeUrl('tiposarquivo');
+        return view('tiposarquivo.edit', $this->monta_compact($tipoarquivo, 'edit'));
     }
 
     /**
@@ -197,9 +253,9 @@ class TipoArquivoController extends Controller
         });
 
         if (!$db_transaction['existia'])
-            $request->session()->flash('alert-success', 'A categoria ' . $db_transaction['categoria']->nome . ' foi adicionada a esse tipo de documento');
+            $request->session()->flash('alert-success', 'A categoria ' . $db_transaction['categoria']->nome . ' (' . $db_transaction['categoria']->vinculo->nome . ')' . ' foi adicionada a esse tipo de documento');
         else
-            $request->session()->flash('alert-info', 'A categoria ' . $db_transaction['categoria']->nome . ' já estava vinculada a esse tipo de documento');
+            $request->session()->flash('alert-info', 'A categoria ' . $db_transaction['categoria']->nome . ' (' . $db_transaction['categoria']->vinculo->nome . ')' . ' já estava vinculada a esse tipo de documento');
         \UspTheme::activeUrl('tiposarquivo');
         return redirect()->to(url('tiposarquivo/edit/' . $tipoarquivo->id))->with($this->monta_compact($tipoarquivo, 'edit'));    // se fosse return view, um eventual F5 do usuário duplicaria o registro... POSTs devem ser com redirect
     }
@@ -214,7 +270,7 @@ class TipoArquivoController extends Controller
 
         $tipoarquivo->categorias()->detach($categoria);
 
-        $request->session()->flash('alert-success', 'A categoria ' . $categoria->nome . ' foi removida desse tipo de documento');
+        $request->session()->flash('alert-success', 'A categoria ' . $categoria->nome . '(' . $categoria->vinculo->nome . ') foi removida desse tipo de documento');
         \UspTheme::activeUrl('tiposarquivo');
         return view('tiposarquivo.edit', $this->monta_compact($tipoarquivo, 'edit'));
     }
@@ -295,9 +351,10 @@ class TipoArquivoController extends Controller
         $objeto = $tipoarquivo;
         $objeto->niveisprogramas = NivelPrograma::obterNiveisProgramasDoTipoArquivo($objeto);
         $niveisprogramas = NivelPrograma::obterNiveisProgramasPossiveis();
-        $categorias = Categoria::all();
+        $vinculos = Vinculo::all();
+        $categorias = Categoria::listarCategorias();
         $rules = TipoArquivoRequest::rules;
 
-        return compact('data', 'objeto', 'niveisprogramas', 'categorias', 'rules', 'modo');
+        return compact('data', 'objeto', 'vinculos', 'categorias', 'niveisprogramas', 'rules', 'modo');
     }
 }

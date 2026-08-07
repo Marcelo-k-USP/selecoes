@@ -11,17 +11,18 @@ use App\Models\Matricula;
 use App\Models\MotivoIsencaoTaxa;
 use App\Models\Nivel;
 use App\Models\NivelLinhaPesquisa;
-use App\Models\Parametro;
 use App\Models\Programa;
 use App\Models\Selecao;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
 use App\Models\User;
+use App\Models\Vinculo;
 use App\Services\ZipService;
 use App\Utils\ClasseUtils;
 use App\Utils\JSONForms;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
@@ -86,7 +87,7 @@ class ArquivoController extends Controller
         $tipoarquivo = TipoArquivo::where('classe_nome', $classe_nome_plural_acentuado)->where('nome', $request->tipoarquivo)->first();
 
         $validator = \Validator::make($request->all(), [
-            'arquivo.*' => 'required|mimes:pdf|max:' . config('selecoes-pos.upload_max_filesize'),
+            'arquivo.*' => 'required|mimes:pdf|max:' . config('selecoes.upload_max_filesize'),
             'objeto_id' => 'required|integer|exists:' . $classe_nome_plural . ',id',
         ]);
         if ($validator->fails()) {
@@ -100,7 +101,7 @@ class ArquivoController extends Controller
 
             foreach ($request->arquivo as $arq) {
                 $arquivo = new Arquivo;
-                $arquivo->user_id = \Auth::user()->id;
+                $arquivo->user_id = Auth::user()->id;
                 $arquivo->nome_original = $classe_nome_abreviada . $objeto->id . '_'
                                             . $tipoarquivo->abreviacao . '_'
                                             . formatarDataHoraAtualComMilissegundos()
@@ -276,7 +277,7 @@ class ArquivoController extends Controller
     private function obterTimeoutMaximo($filesize)
     {
         $filesize = $filesize / (1024 * 1024 * 1024);    // tamanho do arquivo em Gb
-        return max(60, ceil($filesize * env('selecoes-pos.timeout_por_gb')));    // o tempo máximo será de no mínimo 60 segundos
+        return max(60, ceil($filesize * env('selecoes.timeout_por_gb')));    // o tempo máximo será de no mínimo 60 segundos
     }
 
     private function obterForm(string $classe_nome, object $objeto) {
@@ -302,7 +303,6 @@ class ArquivoController extends Controller
     {
         $data = (object) ('App\\Http\\Controllers\\' . $classe_nome . 'Controller')::$data;
         $selecao = ($classe_nome == 'Selecao' ? $objeto : $objeto->selecao);
-        $responsaveis = $selecao->programa?->obterResponsaveis() ?? (new Programa())->obterResponsaveis();
         $extras = json_decode($objeto->extras, true);
         if ($selecao->exigeNivel() && $selecao->exigeLinhaPesquisa()) {
             $objeto->niveislinhaspesquisa = NivelLinhaPesquisa::obterNiveisLinhasPesquisaDaSelecao($selecao);
@@ -323,10 +323,10 @@ class ArquivoController extends Controller
         else
             $niveis_selecao = collect();
         $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoDaSelecao($classe_nome, $niveis_selecao, $selecao);
-        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao->programa_id);
+        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao);
         if ($classe_nome == 'Selecao') {
             $objeto->disciplinas = $objeto->disciplinas->sortBy('sigla');
-            $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao->programa_id)
+            $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao)
                                 ->filter(function ($tipoarquivo) use ($selecao) { return ($tipoarquivo->nome !== 'Normas para Isenção de Taxa') || $selecao->tem_taxa; })
                             ->merge(TipoArquivo::obterTiposArquivoDaSelecao('SolicitacaoIsencaoTaxa', null, $selecao))
                             ->merge(TipoArquivo::obterTiposArquivoDaSelecao('Inscricao', $niveis_selecao, $selecao))
@@ -338,23 +338,31 @@ class ArquivoController extends Controller
                                                          ->sortBy(function ($tipoarquivo) { return str_starts_with($tipoarquivo->nome, 'Boleto(s) de Pagamento') ? 1 : 0; });
             $tiposarquivo_selecao = $tiposarquivo_selecao->filter(function ($tipoarquivo) use ($selecao) { return ($tipoarquivo->nome !== 'Normas para Isenção de Taxa') || $selecao->tem_taxa; });
         }
-        $tiposarquivo_solicitacaoisencaotaxa = TipoArquivo::obterTiposArquivoPossiveis('SolicitacaoIsencaoTaxa', null, $selecao->programa_id);
-        $tiposarquivo_inscricao = TipoArquivo::obterTiposArquivoPossiveis('Inscricao', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao->programa_id);
-        $tiposarquivo_matricula = TipoArquivo::obterTiposArquivoPossiveis('Matricula', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao->programa_id);
-        $programas = Programa::all()->map(function ($programa) {
+        $tiposarquivo_solicitacaoisencaotaxa = TipoArquivo::obterTiposArquivoPossiveis('SolicitacaoIsencaoTaxa', null, $selecao);
+        $tiposarquivo_inscricao = TipoArquivo::obterTiposArquivoPossiveis('Inscricao', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao);
+        $tiposarquivo_matricula = TipoArquivo::obterTiposArquivoPossiveis('Matricula', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao);
+        $programas = Programa::all()->filter(function ($programa) { return Gate::allows('programas.view', $programa); })->map(function ($programa) {
             $programa->setAttribute('fazInscricoes', $programa->fazInscricoes());
             $programa->setAttribute('fazMatriculas', $programa->fazMatriculas());
             return $programa;
         });
-        $categorias = Categoria::all()->map(function ($categoria) {
-            $categoria->setAttribute('exigePrograma', $categoria->exigePrograma());
-            $categoria->setAttribute('exigeLinhaPesquisa', $categoria->exigeLinhaPesquisa());
-            $categoria->setAttribute('exigeDisciplinas', $categoria->exigeDisciplinas());
+        $categorias = Categoria::all()->filter(function ($categoria) { return Gate::allows('categorias.view', $categoria); })->map(function ($categoria) {
+            $categoria->setAttribute('exigePrograma', $categoria->exige_programa);
+            $categoria->setAttribute('fazInscricoes', $categoria->fazInscricoes());
+            $categoria->setAttribute('fazMatriculas', $categoria->fazMatriculas());
             return $categoria;
         });
-        $boleto_momento_envio = Parametro::first()->boleto_momento_envio;
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $vinculos = Vinculo::all()->filter(function ($vinculo) { return Gate::allows('vinculos.view', $vinculo); })->map(function ($vinculo) {
+            $vinculo->setAttribute('exigeCategoria', $vinculo->exige_categoria);
+            $vinculo->setAttribute('permitePrograma', $vinculo->permite_programa);
+            $vinculo->setAttribute('permiteTaxa', $vinculo->permite_taxa);
+            $vinculo->setAttribute('fazInscricoes', $vinculo->fazInscricoes());
+            $vinculo->setAttribute('fazMatriculas', $vinculo->fazMatriculas());
+            return $vinculo;
+        });
+        $boleto_momento_envio = $selecao->vinculo->boleto_momento_envio;
+        $max_upload_size = config('selecoes.upload_max_filesize');
 
-        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'niveislinhaspesquisa', 'disciplinas', 'motivosisencaotaxa', 'responsaveis', 'objeto_disciplinas', 'nivel', 'solicitacaoisencaotaxa_aprovada', 'tiposarquivo_selecao', 'tiposarquivo_solicitacaoisencaotaxa', 'tiposarquivo_inscricao', 'tiposarquivo_matricula', 'programas', 'categorias', 'boleto_momento_envio', 'max_upload_size', 'scroll');
+        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'niveislinhaspesquisa', 'disciplinas', 'motivosisencaotaxa', 'objeto_disciplinas', 'nivel', 'solicitacaoisencaotaxa_aprovada', 'tiposarquivo_selecao', 'tiposarquivo_solicitacaoisencaotaxa', 'tiposarquivo_inscricao', 'tiposarquivo_matricula', 'programas', 'categorias', 'vinculos', 'boleto_momento_envio', 'max_upload_size', 'scroll');
     }
 }

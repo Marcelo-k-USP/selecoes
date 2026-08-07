@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class LinhaPesquisa extends Model
@@ -68,7 +69,7 @@ class LinhaPesquisa extends Model
     public static function listarLinhasPesquisa()
     {
         $linhaspesquisa = self::with('programa')
-            ->whereIn('programa_id', \Auth::user()->listarProgramasGerenciados()->pluck('id'))    // linhas de pesquisa/temas de programas que o usuário gerencia, e também...
+            ->whereIn('programa_id', Auth::user()->listarProgramasGerenciados()->pluck('id'))    // linhas de pesquisa/temas de programas que o usuário gerencia, e também...
             ->orWhere(function ($query) {
                 if (session('perfil') == 'admin')
                     $query->whereNotNull('id');

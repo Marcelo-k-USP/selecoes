@@ -23,7 +23,7 @@
               <div class="col-sm-8">
                 <select class="form-control" name="id" id="id_campo1">
                   @foreach ($categorias as $categoria)
-                    <option value='{{ $categoria->id }}'>{{ $categoria->nome }}</option>
+                    <option value='{{ $categoria->id }}'>{{ $categoria->nome }} ({{ $categoria->vinculo->nome }})</option>
                   @endforeach
                 </select>
               </div>

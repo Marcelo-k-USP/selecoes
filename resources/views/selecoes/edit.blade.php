@@ -67,9 +67,11 @@
                 @if ($selecao->tem_taxa)
                   @include('selecoes.show.card-motivosisencaotaxa')                  {{-- Motivos de Isenção de Taxa --}}
                 @endif
-                @include('common.show.card-arquivos', [                              {{-- Arquivos --}}
-                  'tipoarquivo_classe_nome_plural_acentuado' => 'Seleções',
-                ])
+                @if ($selecao->tiposarquivo->where('classe_nome', 'Seleções')->count() > 0)
+                  @include('common.show.card-arquivos', [                            {{-- Arquivos --}}
+                    'tipoarquivo_classe_nome_plural_acentuado' => 'Seleções',
+                  ])
+                @endif
                 @if ($selecao->tem_taxa)
                   @include('selecoes.show.card-tiposarquivo', [                      {{-- Tipos de Arquivo nas Solicitações de Isenção de Taxa --}}
                     'tipoarquivo_classe_nome_plural_acentuado' => 'Solicitações de Isenção de Taxa',

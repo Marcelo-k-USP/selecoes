@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Categoria;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Support\Facades\Gate;
@@ -24,12 +25,18 @@ class CategoriaPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\Models\User   $user
+     * @param  \App\Models\User       $user
+     * @param  \App\Models\Categoria  $categoria
      * @return mixed
      */
-    public function view(User $user)
+    public function view(User $user, Categoria $categoria)
     {
-        return Gate::any(['perfiladmin', 'perfilgerente']);
+        if (Gate::allows('perfiladmin'))
+            return true;
+        elseif (Gate::allows('perfilgerente'))
+            return $user->gerenciaCategoria($categoria->id);
+        else
+            return false;
     }
 
     /**

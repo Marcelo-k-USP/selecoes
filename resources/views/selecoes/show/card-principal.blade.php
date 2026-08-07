@@ -46,62 +46,100 @@
         $(this).mask('00/00/0000');
       });
 
-      exige_categoria = {{ Parametro::first()->exigeCategoria() ? 'true' : 'false' }};
-      if (!exige_categoria)
-        $('#categoria_id').closest('.form-group').hide();
+      vinculos = @json($vinculos->keyBy('id'));
+      categorias = @json($categorias->keyBy('id'));
+      programas = @json($programas->keyBy('id'));
 
-      exige_programa = {{ Parametro::first()->exigePrograma() ? 'true' : 'false' }};
-      if (!exige_programa)
-        $('#programa_id').closest('.form-group').hide();
-
+      exige_categoria = false;
+      exige_programa = false;
+      permite_taxa = false;
       faz_inscricoes = false;
       faz_matriculas = false;
 
-      permite_taxa = {{ Parametro::first()->permiteTaxa() ? 'true' : 'false' }};
+      $('#vinculo_id, #categoria_id, #programa_id').change(function () {
+        vinculo_id = $('#vinculo_id').val();
+        vinculo = vinculos[vinculo_id];
+        if (vinculo) {
 
-      $('#categoria_id, #programa_id').change(function () {
-        if (!permite_taxa)
-          $('#tem_taxa').closest('.form-group').hide();
+          exige_categoria = vinculo.exige_categoria;
+          if (exige_categoria)
+            $('#categoria_id').closest('.form-group').show();
+          else
+            $('#categoria_id').val('').closest('.form-group').hide();
+
+          permite_taxa = vinculo.permite_taxa;
+          faz_inscricoes = vinculo.processos ? (vinculo.processos.indexOf('Inscrição') !== -1) : false;
+          faz_matriculas = vinculo.processos ? (vinculo.processos.indexOf('Matrícula') !== -1) : false;
+        } else {
+          $('#categoria_id').closest('.form-group').hide();
+          permite_taxa = false;
+          faz_inscricoes = false;
+          faz_matriculas = false;
+        }
 
         categoria_id = $('#categoria_id').val();
-        categoria = $({!! $categorias !!}).filter(function(index, item) {
-          return item.id == categoria_id;
-        })[0];
-        if (categoria)
-          exige_programa = categoria.exigePrograma;
+        categoria = categorias[categoria_id];
+        if (categoria) {
 
-        if (exige_programa && (($('#categoria_id').val() !== '') || !exige_categoria)) {
+          exige_programa = categoria.exige_programa;
+          if (exige_categoria && categoria.processos) {
+            faz_inscricoes = categoria.processos ? (categoria.processos.indexOf('Inscrição') !== -1) : false;
+            faz_matriculas = categoria.processos ? (categoria.processos.indexOf('Matrícula') !== -1) : false;
+          }
+        } else if (vinculo)
+          exige_programa = vinculo.permite_programa;
+        else
+          exige_programa = false;
+
+        programa_id = '';
+        if (exige_programa && (categoria_id !== '' || !exige_categoria)) {
           $('#programa_id').closest('.form-group').show();
+
           programa_id = $('#programa_id').val();
-          programa = $({!! $programas !!}).filter(function(index, item) {
-            return item.id == programa_id;
-          })[0];
-          if (programa) {
-            faz_inscricoes = programa.fazInscricoes;
-            faz_matriculas = programa.fazMatriculas;
+          programa = programas[programa_id];
+          if (programa && exige_categoria && exige_programa) {
+            if (programa.fazInscricoes !== undefined) faz_inscricoes = programa.fazInscricoes;
+            if (programa.fazMatriculas !== undefined) faz_matriculas = programa.fazMatriculas;
           }
         } else {
           $('#programa_id option:first').prop('selected', true);
           $('#programa_id').closest('.form-group').hide();
-          if ($('#categoria_id option:selected').text() === 'Aluno Especial') {
-            faz_inscricoes = {{ Parametro::first()->especiaisFazInscricoes() ? 'true' : 'false' }};
-            faz_matriculas = {{ Parametro::first()->especiaisFazMatriculas() ? 'true' : 'false' }};
-          }
         }
+
+        if (exige_categoria && categoria_id === '') {
+          faz_inscricoes = false;
+          faz_matriculas = false;
+          permite_taxa = false;
+        }
+
+        if (exige_programa && programa_id === '') {
+          faz_inscricoes = false;
+          faz_matriculas = false;
+          permite_taxa = false;
+        }
+
+        if (!permite_taxa)
+          $('#tem_taxa').prop('checked', false).closest('.form-group').hide();
+        else
+          $('#tem_taxa').closest('.form-group').show();
 
         if (faz_inscricoes)    // quando faz ambas inscrições e matrículas, o campo "tem taxa" recai nas inscrições, então não precisamos checar por faz_inscricoes && faz_matriculas
           updateTemTaxaLabel('Inscrição');
         else if (faz_matriculas)
           updateTemTaxaLabel('Matrícula');
 
+        updateCampoFluxoContinuo();
         updateCamposDataHora();
         updateCamposEmail();
         updateCamposBoleto();
       });
 
-      $('#categoria_id').trigger('change');
+      // caso o usuário possa acessar um único vínculo, seleciona-o e oculta o campo de seleção
+      chaves_vinculos = Object.keys(vinculos);
+      if (chaves_vinculos.length === 1)
+        $('#vinculo_id').val(chaves_vinculos[0]).closest('.form-group').hide();
 
-      updateCampoFluxoContinuo();
+      $('#vinculo_id').trigger('change');
 
       $('#tem_taxa').on('click', function () {
         updateCampoFluxoContinuo();

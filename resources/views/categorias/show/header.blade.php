@@ -1,6 +1,6 @@
 <div class="d-flex">
   <b>
-    {{ $categoria->nome }}
+    {{ $categoria->nome }} ({{ $categoria->vinculo->nome }})
   </b>
   <div class="hidden-btn d-none ml-auto">
     @can('tiposarquivo.update', $tipoarquivo)

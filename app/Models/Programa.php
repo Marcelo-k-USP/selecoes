@@ -52,14 +52,12 @@ class Programa extends Model
     // uso no crud generico
     public static function getFields()
     {
-        $processos = [];
-        $parametro = new Parametro();
-        if ($parametro->permiteInscricao())
-            $processos['Inscrição'] = 'Inscrição';
-        if ($parametro->permiteInscricao() && $parametro->permiteMatricula())
-            $processos['Inscrição e Matrícula'] = 'Inscrição e Matrícula';
-        if ($parametro->permiteMatricula())
-            $processos['Matrícula'] = 'Matrícula';
+        // para o crud de programa, devo permitir todos os processos
+        $processos = [
+            'Inscrição' => 'Inscrição',
+            'Inscrição e Matrícula' => 'Inscrição e Matrícula',
+            'Matrícula' => 'Matrícula',
+        ];
 
         $fields = self::fields;
         foreach ($fields as &$field)
@@ -79,9 +77,8 @@ class Programa extends Model
         $programas = self::get();
         $ret = [];
         foreach ($programas as $programa)
-            if (Gate::allows('programas.view', $programa)) {
+            if (Gate::allows('programas.view', $programa))
                 $ret[$programa->id] = $programa->nomeCompleto();
-            }
         return $ret;
     }
 
@@ -102,40 +99,6 @@ class Programa extends Model
             return collect();
 
         return $this->users()->wherePivot('funcao_id', $funcao->id)->select('users.id', 'users.name', 'users.codpes', 'users.email')->orderBy('users.name')->get();
-    }
-
-    public function obterResponsaveis()
-    {
-        $grupo_funcionarios_setor = Funcao::where('grupo', 'Funcionários(as) do Setor')->first();
-        $grupo_coordenadores_setor = Funcao::where('grupo', 'Coordenadores(as) do Setor')->first();
-
-        return [
-            [
-                'funcao' => 'Docentes do Programa',
-                'grupo' => 'Docentes do Programa',
-                'users' => $this->obterPessoasFuncao('Docentes do Programa'),
-            ],
-            [
-                'funcao' => 'Secretários(as) do Programa',
-                'grupo' => 'Secretários(as) do Programa',
-                'users' => $this->obterPessoasFuncao('Secretários(as) do Programa'),
-            ],
-            [
-                'funcao' => 'Coordenadores(as) do Programa',
-                'grupo' => 'Coordenadores(as) do Programa',
-                'users' => $this->obterPessoasFuncao('Coordenadores(as) do Programa'),
-            ],
-            [
-                'funcao' => 'Serviço de Pós-Graduação',
-                'grupo' => 'Funcionários(as) do Setor',
-                'users' => $grupo_funcionarios_setor ? $grupo_funcionarios_setor->users()->orderBy('users.name')->get() : collect(),
-            ],
-            [
-                'funcao' => 'Coordenadores(as) da Pós-Graduação',
-                'grupo' => 'Coordenadores(as) do Setor',
-                'users' => $grupo_coordenadores_setor ? $grupo_coordenadores_setor->users()->orderBy('users.name')->get() : collect(),
-            ],
-        ];
     }
 
     public function nomeCompleto()

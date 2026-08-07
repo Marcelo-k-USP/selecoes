@@ -8,6 +8,7 @@ use App\Utils\ClasseUtils;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Uspdev\Replicado\Estrutura;
@@ -681,6 +682,10 @@ class Selecao extends Model
         'ingresso_ano',
         'nome',
         'descricao',
+        'estado',
+        'vinculo_id',
+        'categoria_id',
+        'programa_id',
         'tem_taxa',
         'fluxo_continuo',
         'solicitacoesisencaotaxa_datahora_inicio',
@@ -689,17 +694,14 @@ class Selecao extends Model
         'inscricoes_datahora_fim',
         'matriculas_datahora_inicio',
         'matriculas_datahora_fim',
-        'boleto_valor',
-        'boleto_texto',
         'boleto_data_vencimento',
         'boleto_offset_vencimento',
+        'boleto_valor',
+        'boleto_texto',
         'email_inscricaoaprovacao_texto',
         'email_inscricaorejeicao_texto',
         'email_matriculaaprovacao_texto',
         'email_matricularejeicao_texto',
-        'categoria_id',
-        'programa_id',
-        'estado',
         'template_solicitacoesisencaotaxa',
         'template_inscricoes',
         'template_matriculas',
@@ -707,6 +709,13 @@ class Selecao extends Model
 
     // uso no crud generico
     protected const fields = [
+        [
+            'name' => 'vinculo_id',
+            'label' => 'Vínculo',
+            'type' => 'select',
+            'model' => 'Vinculo',
+            'data' => [],
+        ],
         [
             'name' => 'categoria_id',
             'label' => 'Categoria',
@@ -824,14 +833,7 @@ class Selecao extends Model
         Selecao::observe(SelecaoObserver::class);
     }
 
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-        $this->injetarUnidadeNosTemplates();
-    }
-
-    // como os templates são protegidos, precisamos de um método para inserir os termos variáveis da unidade
-    private function injetarUnidadeNosTemplates()
+    public function injetarUnidadeNosTemplates()
     {
         $this->injetarUnidadeNoTemplate('SolicitacaoIsencaoTaxa');
         $this->injetarUnidadeNoTemplate('Inscricao');
@@ -845,9 +847,13 @@ class Selecao extends Model
         if (empty($this->attributes[$template_nome]))
             return;
 
+        // se não houver nenhuma tag para substituir, aborta aqui mesmo... isso previne repetição inútil caso o model seja "tocado" várias vezes
+        if (!str_contains($this->attributes[$template_nome], '{{UNIDADE_'))
+            return;
+
         $this->attributes[$template_nome] = str_replace(
             '{{UNIDADE_LINK_INSCRICAO_TERMOS}}',
-            Parametro::first()->link_inscricao_termos ?? '#',
+            $this->vinculo?->link_inscricao_termos ?? '#',
             $this->attributes[$template_nome]
         );
 
@@ -924,83 +930,163 @@ class Selecao extends Model
      */
     public static function listarSelecoes()
     {
-        return self::whereIn('programa_id', \Auth::user()->listarProgramasGerenciados()->pluck('id'))              // seleções de programas que o usuário gerencia, e também...
+        if (session('perfil') === 'admin')
+            return self::all();
+
+        $vinculosIds = Auth::user()->funcoes()->with('vinculos')->get()->pluck('vinculos.*.id')->flatten()->unique();
+        return self::whereIn('vinculo_id', $vinculosIds)->where(function ($query) {
+            $query->whereIn('programa_id', Auth::user()->listarProgramasGerenciados()->pluck('id'))               // seleções de programas que o usuário gerencia, e também...
                     ->orWhere(function ($query) {
-                        $query->where('categoria_id', Categoria::where('nome', 'Aluno Especial')->value('id'));    // seleções para alunos especiais (sem programa), desde que, neste segundo caso...
-                        $query->where(function ($query) {
-                            if (session('perfil') == 'admin')                                                      // desde que o usuário seja admin, ou...
-                                return;
-                            $query->orWhereExists(function ($query) {
+                        $query->where('categoria_id', Categoria::where('nome', 'Aluno Especial')->value('id'))    // seleções para alunos especiais (sem programa), desde que, neste segundo caso...
+                            ->where(function ($query) {
+                            $query->whereExists(function ($query) {
                                 $query->selectRaw(1)
                                     ->from('user_funcao')
                                     ->join('funcoes', 'funcoes.id', '=', 'user_funcao.funcao_id')
-                                    ->where('user_funcao.user_id', \Auth::id())
+                                    ->where('user_funcao.user_id', Auth::id())
                                     ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']);    // ou que o usuário seja do grupo Funcionários(as) do Setor ou Coordenadores(as) do Setor
                             });
                         });
-                    })
-                    ->get();
+                    });
+                })
+                ->get();
     }
 
     /**
-     * Mostra lista de categorias e respectivas seleções
+     * Mostra lista de vínculos e respectivas seleções
      * para selecionar e solicitar isenção de taxa
      *
      * @return \Illuminate\Http\Response
      */
     public static function listarSelecoesParaNovaSolicitacaoIsencaoTaxa()
     {
-        $categorias = Categoria::get();                                  // primeiro vamos pegar todas as seleções
-        foreach ($categorias as $categoria) {                            // e depois filtrar as que não pode
-            $selecoes = $categoria->selecoes;                            // primeiro vamos pegar todas as seleções
-            $selecoes = $selecoes->filter(fn($selecao) => str_starts_with($selecao->estado, 'Período de Solicitações de Isenção de Taxa'));    // só aceita as seleções que estejam em período de solicitações de isenção de taxa
-            $categoria->selecoes = $selecoes;
-        }
-        return $categorias;                                              // retorna as seleções dentro de categorias
+        // obtém os vínculos com suas categorias e respectivas seleções, bem como com suas seleções
+        $vinculos = Vinculo::with([ 'categorias.selecoes.niveislinhaspesquisa.nivel', 'selecoes.niveislinhaspesquisa.nivel' ])->get();
+
+        // filtro para aceitar somente as seleções que estejam em período de solicitações de isenção de taxa
+        $filtro = fn($selecao) =>
+            (str_starts_with($selecao->estado, 'Período de Solicitações de Isenção de Taxa'));
+
+        // tratamento dos níveis com linhas de pesquisa/temas
+        $tratamento_niveis = function ($selecoes) {
+            foreach ($selecoes as $selecao)
+                $selecao->niveis = $selecao->niveislinhaspesquisa->sortBy('nivel_id')->pluck('nivel')->unique();
+            return $selecoes;
+        };
+
+        foreach ($vinculos as $vinculo)
+            if ($vinculo->categorias->isEmpty())
+                $vinculo->setRelation('selecoes', $tratamento_niveis($vinculo->selecoes->filter($filtro)));    // coloca as seleções direto no vínculo
+            else {
+                $vinculo->setRelation('selecoes', collect());    // coloca as seleções dentro de cada categoria
+                foreach ($vinculo->categorias as $categoria)
+                    $categoria->setRelation('selecoes', $tratamento_niveis($categoria->selecoes->filter($filtro)));
+            }
+
+        // elimina vínculos sem seleções
+        $vinculos = $vinculos->filter(function ($vinculo) {
+            if ($vinculo->categorias->isEmpty())
+                return $vinculo->selecoes->isNotEmpty();
+            else {
+                $categoriasComSelecao = $vinculo->categorias->filter(fn($categoria) => $categoria->selecoes->isNotEmpty());
+                $vinculo->setRelation('categorias', $categoriasComSelecao);
+                return $categoriasComSelecao->isNotEmpty();
+            }
+        });
+
+        return $vinculos;
     }
 
     /**
-     * Mostra lista de categorias e respectivas seleções
+     * Mostra lista de vínculos e respectivas seleções
      * para selecionar e criar nova inscrição
      *
      * @return \Illuminate\Http\Response
      */
     public static function listarSelecoesParaNovaInscricao()
     {
-        $categorias = Categoria::get();                                  // primeiro vamos pegar todas as seleções
-        foreach ($categorias as $categoria) {                            // e depois filtrar as que não pode
-            $selecoes = $categoria->selecoes;                            // primeiro vamos pegar todas as seleções
-            $selecoes = $selecoes->filter(fn($selecao) =>
-                (str_starts_with($selecao->estado, 'Período de') && str_contains($selecao->estado, 'Inscrições'))    // só aceita as seleções que estejam em período de inscrições
-                && $selecao->fazInscricoes()
-            );
+        // obtém os vínculos com suas categorias e respectivas seleções, bem como com suas seleções
+        $vinculos = Vinculo::with([ 'categorias.selecoes.niveislinhaspesquisa.nivel', 'selecoes.niveislinhaspesquisa.nivel' ])->get();
+
+        // filtro para aceitar somente as seleções que estejam em período de inscrições
+        $filtro = fn($selecao) =>
+            (str_starts_with($selecao->estado, 'Período de') && str_contains($selecao->estado, 'Inscrições'))
+            && $selecao->fazInscricoes();
+
+        // tratamento dos níveis com linhas de pesquisa/temas
+        $tratamento_niveis = function ($selecoes) {
             foreach ($selecoes as $selecao)
                 $selecao->niveis = $selecao->niveislinhaspesquisa->sortBy('nivel_id')->pluck('nivel')->unique();
-            $categoria->selecoes = $selecoes;
-        }
-        return $categorias;                                              // retorna as seleções dentro de categorias
+            return $selecoes;
+        };
+
+        foreach ($vinculos as $vinculo)
+            if ($vinculo->categorias->isEmpty())
+                $vinculo->setRelation('selecoes', $tratamento_niveis($vinculo->selecoes->filter($filtro)));    // coloca as seleções direto no vínculo
+            else {
+                $vinculo->setRelation('selecoes', collect());    // coloca as seleções dentro de cada categoria
+                foreach ($vinculo->categorias as $categoria)
+                    $categoria->setRelation('selecoes', $tratamento_niveis($categoria->selecoes->filter($filtro)));
+            }
+
+        // elimina vínculos sem seleções
+        $vinculos = $vinculos->filter(function ($vinculo) {
+            if ($vinculo->categorias->isEmpty())
+                return $vinculo->selecoes->isNotEmpty();
+            else {
+                $categoriasComSelecao = $vinculo->categorias->filter(fn($categoria) => $categoria->selecoes->isNotEmpty());
+                $vinculo->setRelation('categorias', $categoriasComSelecao);
+                return $categoriasComSelecao->isNotEmpty();
+            }
+        });
+
+        return $vinculos;
     }
 
     /**
-     * Mostra lista de categorias e respectivas seleções
+     * Mostra lista de vínculos e respectivas seleções
      * para selecionar e criar nova matrícula
      *
      * @return \Illuminate\Http\Response
      */
     public static function listarSelecoesParaNovaMatricula()
     {
-        $categorias = Categoria::get();                                  // primeiro vamos pegar todas as seleções
-        foreach ($categorias as $categoria) {                            // e depois filtrar as que não pode
-            $selecoes = $categoria->selecoes;                            // primeiro vamos pegar todas as seleções
-            $selecoes = $selecoes->filter(fn($selecao) =>
-                (str_starts_with($selecao->estado, 'Período de') && str_contains($selecao->estado, 'Matrículas'))    // só aceita as seleções que estejam em período de matrículas
-                && $selecao->fazMatriculas()
-            );
+        // obtém os vínculos com suas categorias e respectivas seleções, bem como com suas seleções
+        $vinculos = Vinculo::with([ 'categorias.selecoes.niveislinhaspesquisa.nivel', 'selecoes.niveislinhaspesquisa.nivel' ])->get();
+
+        // filtro para aceitar somente as seleções que estejam em período de matrículas
+        $filtro = fn($selecao) =>
+            (str_starts_with($selecao->estado, 'Período de') && str_contains($selecao->estado, 'Matrículas'))
+            && $selecao->fazMatriculas();
+
+        // tratamento dos níveis com linhas de pesquisa/temas
+        $tratamento_niveis = function ($selecoes) {
             foreach ($selecoes as $selecao)
                 $selecao->niveis = $selecao->niveislinhaspesquisa->sortBy('nivel_id')->pluck('nivel')->unique();
-            $categoria->selecoes = $selecoes;
-        }
-        return $categorias;                                              // retorna as seleções dentro de categorias
+            return $selecoes;
+        };
+
+        foreach ($vinculos as $vinculo)
+            if ($vinculo->categorias->isEmpty())
+                $vinculo->setRelation('selecoes', $tratamento_niveis($vinculo->selecoes->filter($filtro)));    // coloca as seleções direto no vínculo
+            else {
+                $vinculo->setRelation('selecoes', collect());    // coloca as seleções dentro de cada categoria
+                foreach ($vinculo->categorias as $categoria)
+                    $categoria->setRelation('selecoes', $tratamento_niveis($categoria->selecoes->filter($filtro)));
+            }
+
+        // elimina vínculos sem seleções
+        $vinculos = $vinculos->filter(function ($vinculo) {
+            if ($vinculo->categorias->isEmpty())
+                return $vinculo->selecoes->isNotEmpty();
+            else {
+                $categoriasComSelecao = $vinculo->categorias->filter(fn($categoria) => $categoria->selecoes->isNotEmpty());
+                $vinculo->setRelation('categorias', $categoriasComSelecao);
+                return $categoriasComSelecao->isNotEmpty();
+            }
+        });
+
+        return $vinculos;
     }
 
     /**
@@ -1009,9 +1095,12 @@ class Selecao extends Model
      */
     public function atualizarStatus()
     {
-        $tiposarquivo_required = TipoArquivo::where('classe_nome', 'Seleções')->where('obrigatorio', true)->pluck('nome')->filter(function ($nome) {
-            return ($nome !== 'Normas para Isenção de Taxa') || $this->tem_taxa;
-        })->toArray();
+        $tiposarquivo_required = TipoArquivo::where('classe_nome', 'Seleções')
+            ->whereHas('vinculos', function ($query) {
+                $query->where('vinculos.id', $this->vinculo_id);
+            })->where('obrigatorio', true)->pluck('nome')->filter(function ($nome) {
+                return ($nome !== 'Normas para Isenção de Taxa') || $this->tem_taxa;
+            })->toArray();
         $possui_todos_os_arquivos_required = true;
         foreach ($tiposarquivo_required as $tipoarquivo_required)
             if (!$this->arquivos->contains('pivot.tipo', $tipoarquivo_required)) {
@@ -1136,82 +1225,81 @@ class Selecao extends Model
     {
         $classe_nome_plural = ClasseUtils::obterClasseNomePlural($classe_nome);
 
-        $ultimasPorPrograma = self::query()->select(DB::raw('MAX(id) AS id'))->whereNotNull('programa_id')->whereNotNull($classe_nome_plural . '_datahora_inicio')->where($classe_nome_plural . '_datahora_inicio', '<=', now())->groupBy('programa_id');
-        $ultimaAlunoEspecial = self::query()->select('id')->whereRelation('categoria', 'nome', '=', 'Aluno Especial')->whereNotNull($classe_nome_plural . '_datahora_inicio')->where($classe_nome_plural . '_datahora_inicio', '<=', now())->orderBy('id', 'desc')->limit(1);
+        $ultimasPorPrograma = self::query()->select(DB::raw('MAX(id) AS id'))->whereNotNull('programa_id')->whereNotNull($classe_nome_plural . '_datahora_inicio')->where($classe_nome_plural . '_datahora_inicio', '<=', now())->groupBy('programa_id', 'vinculo_id');
+        $ultimaAlunoEspecial = self::query()->select(DB::raw('MAX(id) AS id'))->whereRelation('categoria', 'nome', '=', 'Aluno Especial')->whereNotNull($classe_nome_plural . '_datahora_inicio')->where($classe_nome_plural . '_datahora_inicio', '<=', now())->groupBy('vinculo_id');
         return array_merge($ultimasPorPrograma->pluck('id')->toArray(), $ultimaAlunoEspecial->pluck('id')->toArray());
     }
 
     public function exigeCategoria()
     {
-        return Parametro::first()->exigeCategoria();
+        $exige_categoria = $this->vinculo?->exige_categoria;
+        return (bool) $exige_categoria;
     }
 
     public function exigePrograma()
     {
-        if (!$this->exigeCategoria())
-            return false;
-
-        return $this->categoria->exigePrograma();
+        $exige_programa = $this->vinculo?->permite_programa;
+        if ($this->exigeCategoria())
+            $exige_programa = $this->categoria?->exige_programa;
+        return (bool) $exige_programa;
     }
 
     public function fazInscricoes()
     {
-        if (!$this->exigeCategoria())
-            return $this->programa?->fazInscricoes();    // vai depender do vínculo (a ser implementado no futuro, quando este selecoes-pos se tornar selecoes)
-
-        if ($this->categoria->nome == 'Aluno Regular')
-            return (bool) $this->programa?->fazInscricoes();
-        elseif ($this->categoria->nome == 'Aluno Especial')
-            return (bool) Parametro::first()->especiaisFazInscricoes();
-        else
-            return false;
+        $faz_inscricoes = $this->vinculo?->fazInscricoes();
+        if ($this->exigeCategoria()) {
+            $faz_inscricoes = $this->categoria?->fazInscricoes();
+            if ($this->exigePrograma())
+                $faz_inscricoes = $this->programa?->fazInscricoes();
+        }
+        return (bool) $faz_inscricoes;
     }
 
     public function fazMatriculas()
     {
-        if (!$this->exigeCategoria())
-            return $this->programa?->fazMatriculas();    // vai depender do vínculo (a ser implementado no futuro, quando este selecoes-pos se tornar selecoes)
-
-        if ($this->categoria->nome == 'Aluno Regular')
-            return (bool) $this->programa?->fazMatriculas();
-        elseif ($this->categoria->nome == 'Aluno Especial')
-            return (bool) Parametro::first()->especiaisFazMatriculas();
-        else
-            return false;
+        $faz_matriculas = $this->vinculo?->fazMatriculas();
+        if ($this->exigeCategoria()) {
+            $faz_matriculas = $this->categoria?->fazMatriculas();
+            if ($this->exigePrograma())
+                $faz_matriculas = $this->programa?->fazMatriculas();
+        }
+        return (bool) $faz_matriculas;
     }
 
     public function permiteTaxa()
     {
-        return Parametro::first()->permiteTaxa();
+        $permite_taxa = $this->vinculo?->permite_taxa;
+        return (bool) $permite_taxa;
     }
 
     public function exigeNivel()
     {
-        if (!$this->exigeCategoria())
-            return false;
-
-        return (bool) $this->categoria?->exigeNivel();
+        $exige_nivel = $this->vinculo?->permite_nivel;
+        if ($this->exigeCategoria())
+            $exige_nivel = $this->categoria?->exige_nivel;
+        return (bool) $exige_nivel;
     }
 
     public function exigeLinhaPesquisa()
     {
-        if (!$this->exigeCategoria())
-            return false;
-
-        return (bool) $this->categoria?->exigeLinhaPesquisa();
+        $exige_linhapesquisa = $this->vinculo?->permite_linhapesquisa;
+        if ($this->exigeCategoria())
+            $exige_linhapesquisa = $this->categoria?->exige_linhapesquisa;
+        return (bool) $exige_linhapesquisa;
     }
 
     public function exigeDisciplinas()
     {
-        if (!$this->exigeCategoria())
-            return false;
-
-        return (bool) $this->categoria?->exigeDisciplinas();
+        $exige_disciplinas = $this->vinculo?->permite_disciplinas;
+        if ($this->exigeCategoria())
+            $exige_disciplinas = $this->categoria?->exige_disciplinas;
+        return (bool) $exige_disciplinas;
     }
 
     public function exigeOrientador()
     {
-        return false;    // vai depender do vínculo (a ser implementado no futuro, quando este selecoes-pos se tornar selecoes)
+        $exige_orientador = $this->vinculo?->exige_orientador;
+        return (bool) $exige_orientador;
     }
 
     /**
@@ -1259,6 +1347,56 @@ class Selecao extends Model
     public function getLinhaspesquisaAttribute()
     {
         return $this->niveislinhaspesquisa->pluck('linhapesquisa')->unique('id')->values();
+    }
+
+    /**
+     * accessor getter para "responsaveis"
+     */
+    public function getResponsaveisAttribute()
+    {
+        $vinculo_id = $this->vinculo_id;
+
+        $funcao_docentes = Funcao::where('nome', 'Docentes do Programa')->whereHas('vinculos', function ($query) use ($vinculo_id) { $query->where('vinculos.id', $vinculo_id); })->first();
+        $funcao_secretarios_programa = Funcao::where('nome', 'Secretários(as) do Programa')->whereHas('vinculos', function ($query) use ($vinculo_id) { $query->where('vinculos.id', $vinculo_id); })->first();
+        $funcao_coordenadores_programa = Funcao::where('nome', 'Coordenadores(as) do Programa')->whereHas('vinculos', function ($query) use ($vinculo_id) { $query->where('vinculos.id', $vinculo_id); })->first();
+        $grupo_funcionarios_setor = Funcao::where('grupo', 'Funcionários(as) do Setor')->whereHas('vinculos', function ($query) use ($vinculo_id) { $query->where('vinculos.id', $vinculo_id); })->first();
+        $grupo_coordenadores_setor = Funcao::where('grupo', 'Coordenadores(as) do Setor')->whereHas('vinculos', function ($query) use ($vinculo_id) { $query->where('vinculos.id', $vinculo_id); })->first();
+
+        return [
+            [
+                'funcao' => 'Docentes do Programa',
+                'grupo' => 'Docentes do Programa',
+                'users' => ($this->programa && $funcao_docentes) ? $this->programa->obterPessoasFuncao('Docentes do Programa', $vinculo_id) : collect(),
+            ],
+            [
+                'funcao' => 'Secretários(as) do Programa',
+                'grupo' => 'Secretários(as) do Programa',
+                'users' => ($this->programa && $funcao_secretarios_programa) ? $this->programa->obterPessoasFuncao('Secretários(as) do Programa', $vinculo_id) : collect(),
+            ],
+            [
+                'funcao' => 'Coordenadores(as) do Programa',
+                'grupo' => 'Coordenadores(as) do Programa',
+                'users' => ($this->programa && $funcao_coordenadores_programa) ? $this->programa->obterPessoasFuncao('Coordenadores(as) do Programa', $vinculo_id) : collect(),
+            ],
+            [
+                'funcao' => $grupo_funcionarios_setor ? $grupo_funcionarios_setor->nome : '',
+                'grupo' => 'Funcionários(as) do Setor',
+                'users' => $grupo_funcionarios_setor ? $grupo_funcionarios_setor->users()->orderBy('users.name')->get() : collect(),
+            ],
+            [
+                'funcao' => $grupo_coordenadores_setor ? $grupo_coordenadores_setor->nome : '',
+                'grupo' => 'Coordenadores(as) do Setor',
+                'users' => $grupo_coordenadores_setor ? $grupo_coordenadores_setor->users()->orderBy('users.name')->get() : collect(),
+            ],
+        ];
+    }
+
+    /**
+     * uma seleção se relaciona com um vínculo
+     */
+    public function vinculo()
+    {
+        return $this->belongsTo('App\Models\Vinculo');
     }
 
     /**

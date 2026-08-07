@@ -1,6 +1,6 @@
 Olá {{ $localuser->name }},<br />
 <br />
-Você se cadastrou no sistema de seleções da pós-graduação.<br />
+Você se cadastrou no sistema de seleções.<br />
 Clique <a href="{{ $email_confirmation_url }}">neste link</a> para confirmar seu e-mail.<br />
 Caso o link não funcione, copie e cole o endereço abaixo no seu navegador:<br />
 {{ $email_confirmation_url }}<br />

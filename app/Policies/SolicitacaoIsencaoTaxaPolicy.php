@@ -46,7 +46,7 @@ class SolicitacaoIsencaoTaxaPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id);
+            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id, $solicitacaoisencaotaxa->selecao->vinculo_id);
         else
             return ($solicitacaoisencaotaxa->pessoas('Autor')->id == $user->id);    // permite que o usuário autor da solicitação de isenção de taxa a visualize
     }
@@ -98,7 +98,7 @@ class SolicitacaoIsencaoTaxaPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id);
+            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id, $solicitacaoisencaotaxa->selecao->vinculo_id);
         else
             return false;
     }
@@ -115,7 +115,7 @@ class SolicitacaoIsencaoTaxaPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id);
+            return $user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id, $solicitacaoisencaotaxa->selecao->vinculo_id);
         elseif (Gate::allows('perfilusuario'))
             return ($solicitacaoisencaotaxa->pessoas('Autor')->id == $user->id);
     }
