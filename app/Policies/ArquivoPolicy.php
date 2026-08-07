@@ -27,10 +27,10 @@ class ArquivoPolicy
         if (Gate::allows('perfiladmin'))
             return true;                                           // permite que admins baixem todos os arquivos
         elseif (Gate::allows('perfilgerente')) {
-            if ($user->gerenciaPrograma($objeto->selecao->programa_id))
+            if ($user->gerenciaPrograma($objeto->selecao->programa_id, $objeto->selecao->vinculo_id))
                 return true;
         } elseif (Gate::allows('perfildocente')) {
-            if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $objeto->selecao->programa_id))
+            if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $objeto->selecao->programa_id, $objeto->selecao->vinculo_id))
                 return true;
         } elseif (Gate::allows('perfilusuario')) {
             $autor_objeto = $objeto->pessoas('Autor');
@@ -56,27 +56,27 @@ class ArquivoPolicy
             return true;                                           // permite que admins baixem todos os arquivos
         elseif (Gate::allows('perfilgerente')) {
             foreach ($arquivo->solicitacoesisencaotaxa as $solicitacaoisencaotaxa)
-                if ($user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id))
+                if ($user->gerenciaPrograma($solicitacaoisencaotaxa->selecao->programa_id, $solicitacaoisencaotaxa->selecao->vinculo_id))
                     return true;
 
             foreach ($arquivo->inscricoes as $inscricao)
-                if ($user->gerenciaPrograma($inscricao->selecao->programa_id))
+                if ($user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id))
                     return true;
 
             foreach ($arquivo->matriculas as $matricula)
-                if ($user->gerenciaPrograma($matricula->selecao->programa_id))
+                if ($user->gerenciaPrograma($matricula->selecao->programa_id, $matricula->selecao->vinculo_id))
                     return true;
         } elseif (Gate::allows('perfildocente')) {
             foreach ($arquivo->solicitacoesisencaotaxa as $solicitacaoisencaotaxa)
-                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $solicitacaoisencaotaxa->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $solicitacaoisencaotaxa->selecao->programa_id, $solicitacaoisencaotaxa->selecao->vinculo_id))
                     return true;
 
             foreach ($arquivo->inscricoes as $inscricao)
-                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $inscricao->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id))
                     return true;
 
             foreach ($arquivo->matriculas as $matricula)
-                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $matricula->selecao->programa_id))
+                if ($user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $matricula->selecao->programa_id, $matricula->selecao->vinculo_id))
                     return true;
         } elseif (Gate::allows('perfilusuario')) {
             foreach ($arquivo->solicitacoesisencaotaxa as $solicitacaoisencaotaxa) {
@@ -115,7 +115,7 @@ class ArquivoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($objeto->selecao->programa_id);
+            return $user->gerenciaPrograma($objeto->selecao->programa_id, $objeto->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         elseif (Gate::allows('perfilusuario')) {
@@ -167,7 +167,7 @@ class ArquivoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($objeto->selecao->programa_id);
+            return $user->gerenciaPrograma($objeto->selecao->programa_id, $objeto->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         elseif (Gate::allows('perfilusuario')) {

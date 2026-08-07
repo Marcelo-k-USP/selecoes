@@ -9,7 +9,7 @@
       @include('users.partials.btn-add-modal')
     </div>
   </div>
-  <table class="table table-striped table-sm table-hover datatable-nopagination display responsive" style="width:100%">
+  <table class="table table-striped table-sm table-hover tabela-users display responsive" style="width:100%">
     <thead>
       <tr>
         <th>Número USP</th>
@@ -48,11 +48,11 @@
 @parent
   <script type="text/javascript">
     $(document).ready(function() {
-      oTable = $('.datatable-nopagination').DataTable({
+      oTable = $('.tabela-users').DataTable({
         dom: 'ti',
         'paging': false,
         'order': [
-          [1, 'asc']
+          [$('.tabela-users thead th').length - 1, 'desc']
         ]
       });
     });

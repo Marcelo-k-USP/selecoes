@@ -146,29 +146,34 @@ class SolicitacaoIsencaoTaxa extends Model
     {
         switch (session('perfil')) {
             case 'admin':
-                $solicitacoesisencaotaxa = self::all();
+                $solicitacoesisencaotaxa = self::with('selecao')->get();
                 break;
 
             case 'gerente':
+                $vinculosIds = Auth::user()->funcoes()->with('vinculos')->get()->pluck('vinculos.*.id')->flatten()->unique();
                 if (Auth::user()->funcoes()
                         ->whereNull('user_funcao.programa_id')
                         ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
                         ->exists())
-                    $solicitacoesisencaotaxa = self::with('selecao')->get();
-                else
-                    $solicitacoesisencaotaxa = self::with('selecao')->whereHas('selecao', function ($query) {
-                        $query->whereIn('programa_id', Auth::user()->listarProgramasGerenciados()->pluck('id'));
+                    $solicitacoesisencaotaxa = self::with('selecao')->whereHas('selecao', function ($query) use ($vinculosIds) { $query->whereIn('vinculo_id', $vinculosIds); })->get();
+                else{
+                    $programasIds = Auth::user()->listarProgramasGerenciados()->pluck('id');
+                    $solicitacoesisencaotaxa = self::with('selecao')->whereHas('selecao', function ($query) use ($programasIds, $vinculosIds) {
+                        $query->whereIn('programa_id', $programasIds)->whereIn('vinculo_id', $vinculosIds);
                     })->get();
+                }
                 break;
 
             case 'docente':
-                $solicitacoesisencaotaxa = self::with('selecao')->whereHas('selecao', function ($query) {
-                    $query->whereIn('programa_id', Auth::user()->listarProgramasGerenciadosFuncao('Docentes do Programa')->pluck('id'));
+                $vinculosIds = Auth::user()->funcoes()->with('vinculos')->get()->pluck('vinculos.*.id')->flatten()->unique();
+                $programasIds = Auth::user()->listarProgramasGerenciadosFuncao('Docentes do Programa')->pluck('id');
+                $solicitacoesisencaotaxa = self::with('selecao')->whereHas('selecao', function ($query) use ($programasIds, $vinculosIds) {
+                    $query->whereIn('programa_id', $programasIds)->whereIn('vinculo_id', $vinculosIds);
                 })->get();
                 break;
 
             default:
-                $solicitacoesisencaotaxa = Auth::user()->solicitacoesisencaotaxa()->wherePivotIn('papel', ['Autor'])->get();
+                $solicitacoesisencaotaxa = Auth::user()->solicitacoesisencaotaxa()->with('selecao')->wherePivotIn('papel', ['Autor'])->get();
         }
 
         $ultimasSelecoesIds = Selecao::obterUltimasSelecoesIds('SolicitacaoIsencaoTaxa');

@@ -17,12 +17,15 @@
     </div>
   </div>
 
-  <table class="table table-striped table-hover datatable-nopagination display responsive" style="width:100%">
+  <table class="table table-striped table-hover tabela-selecoes display responsive" style="width:100%">
     <thead>
       <tr>
         <th>Nro</th>
         <th></th>
         <th>Nome</th>
+          @if (!auth()->user()->gerenciaVinculoUnico())
+        <th width="10%">Vínculo</th>
+        @endif
         <th>Programa</th>
         <th width="15%">Categoria</th>
         <th width="10%">Criada em</th>
@@ -42,6 +45,9 @@
             {{ $selecao->nome }}
             @include('selecoes.partials.status-muted')
           </td>
+          @if (!auth()->user()->gerenciaVinculoUnico())
+            <td>{{ $selecao->vinculo->nome }}</td>
+          @endif
           <td>{{ $selecao->programa?->nome ?? 'N/A' }}</td>
           <td>{{ $selecao->categoria?->nome ?? 'N/A' }}</td>
           <td class="text-right">
@@ -66,13 +72,13 @@
 @parent
   <script type="text/javascript">
     $(document).ready(function() {
-      oTable = $('.datatable-nopagination').DataTable({
+      oTable = $('.tabela-selecoes').DataTable({
         dom:
           't{{ $paginar ? 'p' : '' }}',
           'paging': {{ $paginar ? 'true' : 'false' }},
           'sort': true,
           'order': [
-            [6, 'desc']    // ordenado por data de atualização descrescente
+            [$('.tabela-selecoes thead th').length - 1, 'desc']    // ordena decrescente pela ultima coluna
           ],
           'fixedHeader': true,
           columnDefs: [{

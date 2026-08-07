@@ -103,7 +103,7 @@ class User extends Authenticatable
     {
         $user = new User;
         $user->codpes = $codpes;
-        if (config('selecoes-pos.usar_replicado')) {
+        if (config('selecoes.usar_replicado')) {
 
             //caso utilize o replicado, porém a pessoa não apareça, insere um usuário fake e atualiza o mesmo com dados da senha única no login
             $user->email = (Pessoa::email($codpes)) ?: $codpes . '@usuarios.usp.br';
@@ -253,28 +253,94 @@ class User extends Authenticatable
             return $this->programas()->where('user_funcao.funcao_id', $funcao->id)->get();
     }
 
-    public function gerenciaPrograma(?int $programa_id = null)
+    public function gerenciaVinculoUnico()
     {
-        if ($this->programas()->where('user_funcao.programa_id', $programa_id)->exists())
+        if ((session('perfil') == 'admin') || (session('perfil') == 'usuario'))
+            $vinculos = Vinculo::all();    // admins e candidatos gerenciam todos os vínculos (na verdade, candidatos "acessam" todos os vínculos)
+        else
+            $vinculos = $this->funcoes()->with('vinculos')->get()->pluck('vinculos')->flatten()->unique('id');
+
+        return ($vinculos->count() === 1);
+    }
+
+    public function gerenciaVinculo(int $vinculo_id)
+    {
+        if (session('perfil') == 'admin')
+            return true;
+
+        return $this->funcoes()->whereHas('vinculos', function ($query) use ($vinculo_id) {
+            $query->where('vinculos.id', $vinculo_id);
+        })->exists();
+    }
+
+    public function gerenciaCategoriaAlunoEspecial()
+    {
+        if (session('perfil') == 'admin')
+            return true;
+
+        return $this->gerenciaCategoria(Categoria::where('nome', 'Aluno Especial')->first()->id);
+    }
+
+    public function gerenciaCategoria(int $categoria_id)
+    {
+        if (session('perfil') == 'admin')
+            return true;
+
+        $categoria = Categoria::find($categoria_id);
+        if (!$categoria)
+            return false;
+
+        return $this->funcoes()->whereHas('vinculos', function ($query) use ($categoria) {
+            $query->where('vinculos.id', $categoria->vinculo_id);
+        })->where(function ($query) use ($categoria) {
+            if (!$categoria->exige_programa)
+                $query->whereNull('user_funcao.programa_id');
+        })->exists();
+    }
+
+    public function gerenciaAlgumPrograma()
+    {
+        if (session('perfil') == 'admin')
+            return true;
+
+        if ($this->programas()->exists())
+            return true;
+
+        return $this->funcoes()->whereNull('user_funcao.programa_id')->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])->exists();
+    }
+
+    public function gerenciaPrograma(?int $programa_id = null, ?int $vinculo_id = null)
+    {
+        if ($this->funcoes()->where('user_funcao.programa_id', $programa_id)->when($vinculo_id, $this->restringePorVinculo($vinculo_id))->exists())
             return true;
 
         return $this->funcoes()
                     ->whereNull('user_funcao.programa_id')
                     ->whereIn('funcoes.grupo', ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor'])
+                    ->when($vinculo_id, $this->restringePorVinculo($vinculo_id))
                     ->exists();
     }
 
-    public function gerenciaProgramaGrupoFuncao(string $grupo_funcao_nome, ?int $programa_id = null)
+    public function gerenciaProgramaGrupoFuncao(string $grupo_funcao_nome, ?int $programa_id = null, ?int $vinculo_id = null)
     {
-        $funcao = Funcao::where('grupo', $grupo_funcao_nome)->first();
+        $funcoes_ids = Funcao::where('grupo', $grupo_funcao_nome)->when($vinculo_id, $this->restringePorVinculo($vinculo_id))->pluck('id');
 
-        if (in_array($funcao->grupo, ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']))
+        if (in_array($grupo_funcao_nome, ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']))
             return $this->funcoes()
                         ->whereNull('user_funcao.programa_id')
-                        ->where('funcoes.id', $funcao->id)
+                        ->whereIn('funcoes.id', $funcoes_ids)
                         ->exists();
 
-        return $this->programas()->where('user_funcao.programa_id', $programa_id)->where('user_funcao.funcao_id', $funcao->id)->exists();
+        return $this->programas()->where('user_funcao.programa_id', $programa_id)->whereIn('user_funcao.funcao_id', $funcoes_ids)->exists();
+    }
+
+    private function restringePorVinculo(?int $vinculo_id)
+    {
+        return function ($query) use ($vinculo_id) {
+            $query->whereHas('vinculos', function ($q) use ($vinculo_id) {
+                $q->where('vinculos.id', $vinculo_id);
+            });
+        };
     }
 
     /**

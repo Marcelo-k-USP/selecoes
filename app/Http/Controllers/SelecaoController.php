@@ -12,12 +12,12 @@ use App\Models\Matricula;
 use App\Models\MotivoIsencaoTaxa;
 use App\Models\Nivel;
 use App\Models\NivelLinhaPesquisa;
-use App\Models\Parametro;
 use App\Models\Programa;
 use App\Models\Selecao;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
 use App\Models\User;
+use App\Models\Vinculo;
 use App\Utils\ClasseUtils;
 use App\Utils\JSONForms;
 use Carbon\Carbon;
@@ -65,7 +65,7 @@ class SelecaoController extends Controller
         $data = self::$data;
         $objetos = Selecao::listarSelecoes();
         $classe_nome = 'Selecao';
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $max_upload_size = config('selecoes.upload_max_filesize');
         return view('selecoes.index', compact('data', 'objetos', 'classe_nome', 'max_upload_size'));
     }
 
@@ -144,9 +144,9 @@ class SelecaoController extends Controller
             $ultimaSelecao = null;
             $queryUltimaSelecao = null;
             if ($selecao->exigePrograma())
-                $queryUltimaSelecao = Selecao::where('programa_id', $selecao->programa_id)->where('id', '!=', $selecao->id);
+                $queryUltimaSelecao = Selecao::where('programa_id', $selecao->programa_id)->where('vinculo_id', $selecao->vinculo_id)->where('id', '!=', $selecao->id);
             elseif ($selecao->categoria?->nome == 'Aluno Especial')
-                $queryUltimaSelecao = Selecao::whereRelation('categoria', 'nome', 'Aluno Especial')->where('id', '!=', $selecao->id);
+                $queryUltimaSelecao = Selecao::whereRelation('categoria', 'nome', 'Aluno Especial')->where('vinculo_id', $selecao->vinculo_id)->where('id', '!=', $selecao->id);
             if ($queryUltimaSelecao)
                 $ultimaSelecao = $queryUltimaSelecao->orderBy('id', 'desc')->first();
 
@@ -167,7 +167,7 @@ class SelecaoController extends Controller
                 if ($selecao->exigePrograma() && $selecao->exigeNivel() && $selecao->exigeLinhaPesquisa())
                     $selecao->niveislinhaspesquisa()->attach(NivelLinhaPesquisa::whereRelation('linhapesquisa', 'programa_id', $selecao->programa_id)->pluck('id'));
                 if ($selecao->fazInscricoes()) {
-                    $selecao->tiposarquivo()->attach(TipoArquivo::where('classe_nome', 'Inscrições')->when($selecao->exigeCategoria(), function ($query) use ($selecao) {
+                    $selecao->tiposarquivo()->attach(TipoArquivo::where('classe_nome', 'Inscrições')->whereRelation('vinculos', 'vinculos.id', $selecao->vinculo_id)->when($selecao->exigeCategoria(), function ($query) use ($selecao) {
                         $query->whereHas('categorias', function ($query) use ($selecao) { $query->where('nome', $selecao->categoria->nome); });
                     })->when($selecao->exigeNivel(), function ($query) use ($selecao) {
                         $query->whereHas('niveisprogramas', function ($query) use ($selecao) {
@@ -178,7 +178,7 @@ class SelecaoController extends Controller
                     })->pluck('id'));
                 }
                 if ($selecao->fazMatriculas())
-                    $selecao->tiposarquivo()->attach(TipoArquivo::where('classe_nome', 'Matrículas')->when($selecao->exigeCategoria(), function ($query) use ($selecao) {
+                    $selecao->tiposarquivo()->attach(TipoArquivo::where('classe_nome', 'Matrículas')->whereRelation('vinculos', 'vinculos.id', $selecao->vinculo_id)->when($selecao->exigeCategoria(), function ($query) use ($selecao) {
                         $query->whereHas('categorias', function ($query) use ($selecao) { $query->where('nome', $selecao->categoria->nome); });
                     })->when($selecao->exigeNivel(), function ($query) use ($selecao) {
                         $query->whereHas('niveisprogramas', function ($query) use ($selecao) {
@@ -205,7 +205,7 @@ class SelecaoController extends Controller
                 }
 
                 // se os tipos de documento de boletos não foram cadastrados na seleção, força seu cadastramento
-                $tiposarquivo_boletoIds = TipoArquivo::whereIn('classe_nome', $classes_nome)->whereIn('nome', ['Boleto(s) de Pagamento', 'Boleto(s) de Pagamento - Disciplinas Removidas'])->pluck('id');
+                $tiposarquivo_boletoIds = TipoArquivo::whereIn('classe_nome', $classes_nome)->whereRelation('vinculos', 'vinculos.id', $selecao->vinculo_id)->whereIn('nome', ['Boleto(s) de Pagamento', 'Boleto(s) de Pagamento - Disciplinas Removidas'])->pluck('id');
                 if ($tiposarquivo_boletoIds->isNotEmpty())
                     $selecao->tiposarquivo()->syncWithoutDetaching($tiposarquivo_boletoIds);    // adiciona os registros ausentes sem remover os já existentes
             } else
@@ -991,29 +991,37 @@ class SelecaoController extends Controller
             $niveis_selecao = (!empty($nivel) ? collect([['nome' => $nivel]]) : Nivel::all());
         else
             $niveis_selecao = collect();
-        $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao->programa_id)
+        $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao)
                             ->filter(function ($tipoarquivo) use ($selecao) { return ($tipoarquivo->nome !== 'Normas para Isenção de Taxa') || $selecao->tem_taxa; })
                         ->merge(TipoArquivo::obterTiposArquivoDaSelecao('SolicitacaoIsencaoTaxa', null, $selecao))
                         ->merge(TipoArquivo::obterTiposArquivoDaSelecao('Inscricao', $niveis_selecao, $selecao)
                         ->merge(TipoArquivo::obterTiposArquivoDaSelecao('Matricula', $niveis_selecao, $selecao))
                             ->filter(function ($tipoarquivo) { return !str_starts_with($tipoarquivo->nome, 'Boleto(s) de Pagamento'); }));
-        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao->programa_id);
-        $tiposarquivo_solicitacaoisencaotaxa = TipoArquivo::obterTiposArquivoPossiveis('SolicitacaoIsencaoTaxa', null, $selecao->programa_id);
-        $tiposarquivo_inscricao = TipoArquivo::obterTiposArquivoPossiveis('Inscricao', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao->programa_id);
-        $tiposarquivo_matricula = TipoArquivo::obterTiposArquivoPossiveis('Matricula', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao->programa_id);
-        $programas = Programa::all()->map(function ($programa) {
+        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $selecao);
+        $tiposarquivo_solicitacaoisencaotaxa = TipoArquivo::obterTiposArquivoPossiveis('SolicitacaoIsencaoTaxa', null, $selecao);
+        $tiposarquivo_inscricao = TipoArquivo::obterTiposArquivoPossiveis('Inscricao', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao);
+        $tiposarquivo_matricula = TipoArquivo::obterTiposArquivoPossiveis('Matricula', ($selecao->exigeNivel() ? Nivel::all() : collect()), $selecao);
+        $programas = Programa::all()->filter(function ($programa) { return Gate::allows('programas.view', $programa); })->map(function ($programa) {
             $programa->setAttribute('fazInscricoes', $programa->fazInscricoes());
             $programa->setAttribute('fazMatriculas', $programa->fazMatriculas());
             return $programa;
         });
-        $categorias = Categoria::all()->map(function ($categoria) {
-            $categoria->setAttribute('exigePrograma', $categoria->exigePrograma());
-            $categoria->setAttribute('exigeLinhaPesquisa', $categoria->exigeLinhaPesquisa());
-            $categoria->setAttribute('exigeDisciplinas', $categoria->exigeDisciplinas());
+        $categorias = Categoria::all()->filter(function ($categoria) { return Gate::allows('categorias.view', $categoria); })->map(function ($categoria) {
+            $categoria->setAttribute('exigePrograma', $categoria->exige_programa);
+            $categoria->setAttribute('fazInscricoes', $categoria->fazInscricoes());
+            $categoria->setAttribute('fazMatriculas', $categoria->fazMatriculas());
             return $categoria;
         });
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $vinculos = Vinculo::all()->filter(function ($vinculo) { return Gate::allows('vinculos.view', $vinculo); })->map(function ($vinculo) {
+            $vinculo->setAttribute('exigeCategoria', $vinculo->exige_categoria);
+            $vinculo->setAttribute('permitePrograma', $vinculo->permite_programa);
+            $vinculo->setAttribute('permiteTaxa', $vinculo->permite_taxa);
+            $vinculo->setAttribute('fazInscricoes', $vinculo->fazInscricoes());
+            $vinculo->setAttribute('fazMatriculas', $vinculo->fazMatriculas());
+            return $vinculo;
+        })->values();
+        $max_upload_size = config('selecoes.upload_max_filesize');
 
-        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'modo', 'niveislinhaspesquisa', 'disciplinas', 'motivosisencaotaxa', 'tiposarquivo_selecao', 'tiposarquivo_solicitacaoisencaotaxa', 'tiposarquivo_inscricao', 'tiposarquivo_matricula', 'programas', 'categorias', 'max_upload_size', 'rules', 'scroll');
+        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'modo', 'niveislinhaspesquisa', 'disciplinas', 'motivosisencaotaxa', 'tiposarquivo_selecao', 'tiposarquivo_solicitacaoisencaotaxa', 'tiposarquivo_inscricao', 'tiposarquivo_matricula', 'programas', 'categorias', 'vinculos', 'max_upload_size', 'rules', 'scroll');
     }
 }

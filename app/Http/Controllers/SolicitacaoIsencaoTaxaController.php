@@ -6,7 +6,6 @@ use App\Http\Requests\SolicitacaoIsencaoTaxaRequest;
 use App\Jobs\AtualizaStatusSelecoes;
 use App\Models\LocalUser;
 use App\Models\MotivoIsencaoTaxa;
-use App\Models\Programa;
 use App\Models\Selecao;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
@@ -76,8 +75,8 @@ class SolicitacaoIsencaoTaxaController extends Controller
 
         \UspTheme::activeUrl('solicitacoesisencaotaxa/create');
         AtualizaStatusSelecoes::dispatch()->onConnection('sync');
-        $categorias = Selecao::listarSelecoesParaNovaSolicitacaoIsencaoTaxa();          // obtém as seleções dentro das categorias
-        return view('solicitacoesisencaotaxa.listaselecoesparasolicitacaoisencaotaxa', compact('categorias'));
+        $vinculos = Selecao::listarSelecoesParaNovaSolicitacaoIsencaoTaxa();          // obtém as seleções dentro dos vínculos
+        return view('solicitacoesisencaotaxa.listaselecoesparasolicitacaoisencaotaxa', compact('vinculos'));
     }
 
     /**
@@ -114,7 +113,7 @@ class SolicitacaoIsencaoTaxaController extends Controller
         $selecao = Selecao::find($request->selecao_id);
         Gate::authorize('solicitacoesisencaotaxa.create', $selecao);
 
-        $user = \Auth::user();
+        $user = Auth::user();
 
         // transaction para não ter problema de inconsistência do DB
         $solicitacaoisencaotaxa = DB::transaction(function () use ($request, $user, $selecao) {
@@ -219,7 +218,7 @@ class SolicitacaoIsencaoTaxaController extends Controller
         $data = self::$data;
         $objetos = SolicitacaoIsencaoTaxa::listarSolicitacoesIsencaoTaxa();
         $classe_nome = 'SolicitacaoIsencaoTaxa';
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $max_upload_size = config('selecoes.upload_max_filesize');
 
         return compact('data', 'objetos', 'classe_nome', 'max_upload_size');
     }
@@ -227,16 +226,16 @@ class SolicitacaoIsencaoTaxaController extends Controller
     public function monta_compact(SolicitacaoIsencaoTaxa $solicitacaoisencaotaxa, string $modo, ?string $scroll = null)
     {
         $data = (object) self::$data;
+        $solicitacaoisencaotaxa->selecao->motivosisencaotaxa = $solicitacaoisencaotaxa->selecao->motivosisencaotaxa->sortBy('nome');
         $solicitacaoisencaotaxa->selecao->template_solicitacoesisencaotaxa = JSONForms::orderTemplate($solicitacaoisencaotaxa->selecao->template_solicitacoesisencaotaxa);
         $objeto = $solicitacaoisencaotaxa;
         $classe_nome = 'SolicitacaoIsencaoTaxa';
         $classe_nome_plural = 'solicitacoesisencaotaxa';
         $form = JSONForms::generateForm($objeto->selecao, $classe_nome, $objeto);
-        $responsaveis = $objeto->selecao->programa?->obterResponsaveis() ?? (new Programa())->obterResponsaveis();
         $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoDaSelecao('SolicitacaoIsencaoTaxa', null, $objeto->selecao);
-        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $objeto->selecao->programa_id);
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $objeto->selecao);
+        $max_upload_size = config('selecoes.upload_max_filesize');
 
-        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'responsaveis', 'tiposarquivo_selecao', 'max_upload_size', 'scroll');
+        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'tiposarquivo_selecao', 'max_upload_size', 'scroll');
     }
 }

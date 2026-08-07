@@ -60,9 +60,9 @@ class InscricaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($inscricao->selecao->programa_id);
+            return $user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
-            return $user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $inscricao->selecao->programa_id);
+            return $user->gerenciaProgramaGrupoFuncao('Docentes do Programa', $inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         else
             return ($inscricao->pessoas('Autor')->id == $user->id);    // permite que o usuário autor da inscrição a visualize
     }
@@ -114,7 +114,7 @@ class InscricaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($inscricao->selecao->programa_id);
+            return $user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         else
@@ -133,7 +133,7 @@ class InscricaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($inscricao->selecao->programa_id);
+            return $user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         elseif (Gate::allows('perfilusuario'))
@@ -152,7 +152,7 @@ class InscricaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($inscricao->selecao->programa_id);
+            return $user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         else
@@ -172,7 +172,7 @@ class InscricaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($inscricao->selecao->programa_id);
+            return $user->gerenciaPrograma($inscricao->selecao->programa_id, $inscricao->selecao->vinculo_id);
         elseif (Gate::allows('perfildocente'))
             return false;
         else

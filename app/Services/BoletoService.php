@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Models\Arquivo;
-use App\Models\Inscricao;
-use App\Models\Parametro;
 use App\Models\TipoArquivo;
 use App\Utils\ClasseUtils;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -20,13 +19,12 @@ class BoletoService
     {
         $extras = json_decode($objeto->extras, true);
         $cpf = str_replace(['-', '.'], '', $extras['cpf']);    // a lei 14.534/2023 estabeleceu que estrangeiros devem possuir CPF para cursar pós-graduação
-        $parametros = Parametro::first();
 
-        $boleto = new Boleto(config('selecoes-pos.ws_boleto_usuario'), config('selecoes-pos.ws_boleto_senha'));
+        $boleto = new Boleto(config('selecoes.ws_boleto_usuario'), config('selecoes.ws_boleto_senha'));
         $data = array(
             'codigoUnidadeDespesa' => config('replicado.codundclg'),
-            'codigoFonteRecurso' => $parametros->boleto_codigo_fonte_recurso,
-            'estruturaHierarquica' => $parametros->boleto_estrutura_hierarquica,
+            'codigoFonteRecurso' => $objeto->selecao->vinculo->boleto_codigo_fonte_recurso,
+            'estruturaHierarquica' => $objeto->selecao->vinculo->boleto_estrutura_hierarquica,
             'dataVencimentoBoleto' => ($objeto->selecao->fluxo_continuo ? addWorkingDays(now(), $objeto->selecao->boleto_offset_vencimento) : $objeto->selecao->boleto_data_vencimento),
             'valorDocumento' => $objeto->selecao->boleto_valor,
             'tipoSacado' => 'PF',
@@ -62,7 +60,7 @@ class BoletoService
 
                 // grava informações do arquivo no banco de dados
                 $arquivo = new Arquivo;
-                $arquivo->user_id = \Auth::user()->id;
+                $arquivo->user_id = Auth::user()->id;
                 $arquivo->nome_original = ClasseUtils::obterClasseNomeAbreviada($classe_nome) . $objeto->id . '_Boleto_' . (is_null($disciplina_sigla) ? '' : strtoupper($disciplina_sigla) . '_') . formatarDataHoraAtualComMilissegundos() . '.pdf';
                 $arquivo->caminho = $arquivo_caminho;
                 $arquivo->mimeType = 'application/pdf';
@@ -73,7 +71,7 @@ class BoletoService
                     'disciplina' => $disciplina_sigla
                 ]);
 
-                if (App::environment('local') || config('selecoes-pos.ws_boleto_cancelar')) {
+                if (App::environment('local') || config('selecoes.ws_boleto_cancelar')) {
 
                     // cancela o boleto em ambiente de desenvolvimento, ou também em produção se ligamos a chave WS_BOLETO_CANCELAR
                     config('app.debug') && Log::info('Cancelando o boleto...');

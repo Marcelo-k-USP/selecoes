@@ -5,8 +5,6 @@ namespace App\Observers;
 use App\Mail\InscricaoMail;
 use App\Models\Disciplina;
 use App\Models\Inscricao;
-use App\Models\Parametro;
-use App\Models\Programa;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
 use App\Models\User;
@@ -62,8 +60,8 @@ class InscricaoObserver
         $user = $inscricao->pessoas('Autor');
         $extras = json_decode($inscricao->extras, true);
         $arquivos = [];
-        $boleto_momento_envio = Parametro::first()->boleto_momento_envio;
-        $email_secaoinformatica = Parametro::first()->email_secaoinformatica;
+        $boleto_momento_envio = $inscricao->selecao->vinculo->boleto_momento_envio;
+        $email_secaoinformatica = $inscricao->selecao->vinculo->email_secaoinformatica;
 
         if ($inscricao->isDirty('estado')) {                                    // se a alteração na inscrição foi no estado
             if (($inscricao->getOriginal('estado') == 'Aguardando Envio') &&    // se o estado anterior era Aguardando Envio
@@ -89,28 +87,26 @@ class InscricaoObserver
                 \Mail::to($user->email)
                     ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'arquivos', 'email_secaoinformatica')));
 
-                if ($inscricao->selecao->categoria?->nome == 'Aluno Regular') {
-                    if ($inscricao->selecao->exigePrograma()) {
-                        // envia e-mail avisando os secretários(as) do programa da seleção da inscrição sobre a realização da inscrição
-                        // envio do e-mail "10" do README.md
-                        $passo = 'envio - para gestores';
-                        $responsavel_nome = 'Prezados(as) Srs(as). da Secretaria do Programa ' . $inscricao->selecao->programa->nomeCompleto();
-                        \Mail::to($inscricao->selecao->programa->email_secretaria)
-                            ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
+                if ($inscricao->selecao->exigeCategoria() && $inscricao->selecao->exigePrograma()) {
+                    // envia e-mail avisando os secretários(as) do programa da seleção da inscrição sobre a realização da inscrição
+                    // envio do e-mail "10" do README.md
+                    $passo = 'envio - para gestores';
+                    $responsavel_nome = 'Prezados(as) Srs(as). da Secretaria do Programa ' . $inscricao->selecao->programa->nomeCompleto();
+                    \Mail::to($inscricao->selecao->programa->email_secretaria)
+                        ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
 
-                        // envia e-mails avisando os(as) coordenadores(as) do programa da seleção da inscrição sobre a realização da inscrição
-                        // envio do e-mail "11" do README.md
-                        foreach (collect($inscricao->selecao->programa->obterResponsaveis())->firstWhere('grupo', 'Coordenadores(as) do Programa')['users'] as $coordenador_programa) {
-                            $responsavel_nome = 'Prezado(a) Sr(a). ' . Pessoa::obterNome($coordenador_programa->codpes);
-                            \Mail::to($coordenador_programa->email)
-                                ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
-                        }
+                    // envia e-mails avisando os(as) coordenadores(as) do programa da seleção da inscrição sobre a realização da inscrição
+                    // envio do e-mail "11" do README.md
+                    foreach (collect($inscricao->selecao->responsaveis)->firstWhere('grupo', 'Coordenadores(as) do Programa')['users'] as $coordenador_programa) {
+                        $responsavel_nome = 'Prezado(a) Sr(a). ' . Pessoa::obterNome($coordenador_programa->codpes);
+                        \Mail::to($coordenador_programa->email)
+                            ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
                     }
                 } else {
                     // envia e-mails avisando o setor responsável sobre a realização da inscrição
                     // envio do e-mail "12" do README.md
                     $passo = 'envio - para gestores';
-                    foreach (collect((new Programa)->obterResponsaveis())->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
+                    foreach (collect($inscricao->selecao->responsaveis)->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
                         $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($funcionario_setor->codpes);
                         \Mail::to($funcionario_setor->email)
                             ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'responsavel_nome')));
@@ -123,7 +119,7 @@ class InscricaoObserver
                 // envia e-mail avisando o candidato da pré-aprovação da inscrição
                 // envio do e-mail "16" do README.md
                 $passo = 'pré-aprovação';
-                $link_acompanhamento = (($inscricao->selecao->categoria?->nome == 'Aluno Especial') ? Parametro::first()->link_acompanhamento_especiais : $inscricao->selecao->programa?->link_acompanhamento);
+                $link_acompanhamento = (($inscricao->selecao->categoria?->nome == 'Aluno Especial') ? $inscricao->selecao->categoria->link_acompanhamento : $inscricao->selecao->programa?->link_acompanhamento);
                 \Mail::to($user->email)
                     ->queue(new InscricaoMail(compact('passo', 'inscricao', 'user', 'link_acompanhamento')));
 

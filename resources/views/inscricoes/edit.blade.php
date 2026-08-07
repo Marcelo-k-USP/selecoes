@@ -42,6 +42,9 @@
             @if ($inscricao->selecao->exigeNivel())
               - {{ $nivel }}
             @endif
+            @if (!auth()->user()->gerenciaVinculoUnico())
+              ({{ $inscricao->selecao->vinculo->nome }})
+            @endif
             <br />
             <span class="text-muted">{{ $inscricao->selecao->descricao }}</span><br />
           </div>
@@ -66,9 +69,11 @@
               @include('common.show.card-responsaveis', [       {{-- Responsáveis --}}
                 'selecao' => $inscricao->selecao
               ])
-              @include('common.show.card-informativos', [       {{-- Informativos --}}
-                'selecao' => $inscricao->selecao
-              ])
+              @if ($tiposarquivo_selecao->count() > 0)
+                @include('common.show.card-informativos', [     {{-- Informativos --}}
+                  'selecao' => $inscricao->selecao
+                ])
+              @endif
               @if ($modo == 'edit')
                 @include('common.show.card-arquivos', [         {{-- Arquivos --}}
                   'selecao' => $inscricao->selecao,

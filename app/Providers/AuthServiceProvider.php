@@ -93,7 +93,6 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('matriculas.geraBoletos', 'App\Policies\MatriculaPolicy@geraBoletos');
         Gate::define('matriculas.enviaBoleto', 'App\Policies\MatriculaPolicy@enviaBoleto');
         Gate::resource('motivosisencaotaxa', 'App\Policies\MotivoIsencaoTaxaPolicy');
-        Gate::resource('parametros', 'App\Policies\ParametroPolicy');
         Gate::resource('programas', 'App\Policies\ProgramaPolicy');
         Gate::resource('selecoes', 'App\Policies\SelecaoPolicy');
         Gate::define('selecoes.updateArquivos', 'App\Policies\SelecaoPolicy@updateArquivos');
@@ -103,5 +102,6 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('solicitacoesisencaotaxa.updateArquivos', 'App\Policies\SolicitacaoIsencaoTaxaPolicy@updateArquivos');
         Gate::resource('tiposarquivo', 'App\Policies\TipoArquivoPolicy');
         Gate::resource('users', 'App\Policies\UserPolicy');
+        Gate::resource('vinculos', 'App\Policies\VinculoPolicy');
     }
 }

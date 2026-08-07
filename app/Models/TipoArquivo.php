@@ -131,22 +131,27 @@ class TipoArquivo extends Model
             })->values();
     }
 
-    public static function obterTiposArquivoPossiveis(string $classe_nome, $niveis, ?int $programa_id)
+    public static function obterTiposArquivoPossiveis(string $classe_nome, $niveis, Selecao $selecao)
     {
-        $exigeCategoria = Parametro::first()->exigeCategoria();
+        $exigeCategoria = $selecao->exigeCategoria();
+        $programa_id = $selecao->programa_id;
+
+        $query_v = self::whereHas('vinculos', function ($query) use ($selecao) {
+            $query->where('vinculos.id', $selecao->vinculo_id);
+        });
 
         switch ($classe_nome) {
             case 'Selecao':
                 // todos os tipos de arquivo possíveis para seleções
-                return self::where('classe_nome', 'Seleções')->get();
+                return $query_v->where('classe_nome', 'Seleções')->get();
 
             case 'SolicitacaoIsencaoTaxa':
                 // todos os tipos de arquivo possíveis para solicitações de isenção de taxa
-                return self::where('classe_nome', 'Solicitações de Isenção de Taxa')->get();
+                return $query_v->where('classe_nome', 'Solicitações de Isenção de Taxa')->get();
 
             case 'Inscricao':
                 // todos os tipos de arquivo possíveis para inscrições
-                return self::where('classe_nome', 'Inscrições')->where(function ($query) use ($niveis, $programa_id, $exigeCategoria) {
+                return $query_v->where('classe_nome', 'Inscrições')->where(function ($query) use ($niveis, $programa_id, $exigeCategoria) {
                     if ($niveis->isEmpty()) {
                         if ($exigeCategoria)
                             $query->whereHas('categorias', function ($query) { $query->where('nome', 'Aluno Especial'); });
@@ -164,7 +169,7 @@ class TipoArquivo extends Model
 
             case 'Matricula':
                 // todos os tipos de arquivo possíveis para matrículas
-                return self::where('classe_nome', 'Matrículas')->where(function ($query) use ($niveis, $programa_id, $exigeCategoria) {
+                return $query_v->where('classe_nome', 'Matrículas')->where(function ($query) use ($niveis, $programa_id, $exigeCategoria) {
                     if ($niveis->isEmpty()) {
                         if ($exigeCategoria)
                             $query->whereHas('categorias', function ($query) { $query->where('nome', 'Aluno Especial'); });
@@ -184,7 +189,7 @@ class TipoArquivo extends Model
 
     public static function obterTiposArquivoDaSelecao(string $classe_nome, $niveis, Selecao $selecao)
     {
-        $exigeCategoria = Parametro::first()->exigeCategoria();
+        $exigeCategoria = $selecao->exigeCategoria();
         $programa_id = $selecao->programa_id;
 
         switch ($classe_nome) {
@@ -271,6 +276,14 @@ class TipoArquivo extends Model
             return !empty($this->obrigatorio_condicao_campo) ? 'Condicional' : 'Sim';
 
         return 'Não';
+    }
+
+    /**
+     * um tipo de arquivo se relaciona com n vínculos
+     */
+    public function vinculos()
+    {
+        return $this->belongsToMany('App\Models\Vinculo', 'tipoarquivo_vinculo', 'tipoarquivo_id', 'vinculo_id')->withTimestamps();
     }
 
     /*

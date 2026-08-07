@@ -37,7 +37,11 @@
             @else
               Nova Solicitação de Isenção de Taxa
             @endif
-            para {{ $solicitacaoisencaotaxa->selecao->nome }}{{ $solicitacaoisencaotaxa->selecao->exigeCategoria() ? ' (' . $solicitacaoisencaotaxa->selecao->categoria->nome . ')' : '' }}<br />
+            para {{ $solicitacaoisencaotaxa->selecao->nome }}{{ $solicitacaoisencaotaxa->selecao->exigeCategoria() ? ' (' . $solicitacaoisencaotaxa->selecao->categoria->nome . ')' : '' }}
+            @if (!auth()->user()->gerenciaVinculoUnico())
+              ({{ $solicitacaoisencaotaxa->selecao->vinculo->nome }})
+            @endif
+            <br />
             <span class="text-muted">{{ $solicitacaoisencaotaxa->selecao->descricao }}</span>
           </div>
         </div>
@@ -58,9 +62,11 @@
               @include('common.show.card-responsaveis', [                    {{-- Responsáveis --}}
                 'selecao' => $solicitacaoisencaotaxa->selecao
               ])
-              @include('common.show.card-informativos', [                    {{-- Informativos --}}
-                'selecao' => $solicitacaoisencaotaxa->selecao
-              ])
+              @if ($tiposarquivo_selecao->count() > 0)
+                @include('common.show.card-informativos', [                  {{-- Informativos --}}
+                  'selecao' => $solicitacaoisencaotaxa->selecao
+                ])
+              @endif
               @if ($modo == 'edit')
                 @include('common.show.card-arquivos', [                      {{-- Arquivos --}}
                   'selecao' => $solicitacaoisencaotaxa->selecao,

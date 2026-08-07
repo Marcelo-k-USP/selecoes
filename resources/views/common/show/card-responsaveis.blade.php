@@ -12,6 +12,7 @@
 
 @php
   $programa_id = $selecao->programa_id;
+  $responsaveis = $selecao->responsaveis;
 @endphp
 @include('common.partials.modal-responsavel')
 <a name="card_responsaveis"></a>
@@ -22,93 +23,93 @@
   @if (!is_null($responsaveis) && (count($responsaveis) > 0))
     <div class="card-body">
       @if ($objeto->selecao->exigePrograma())
-        <div class="responsaveis-lista">
-          @php
-            $funcao = 'Secretários(as) do Programa';
-            $programa_secretarios = array_filter($responsaveis, function ($record) use ($funcao) {
-              return ($record['funcao'] == $funcao);
-            });
-            $programa_secretarios = !empty($programa_secretarios) ? json_decode(array_values($programa_secretarios)[0]['users'], true) : [];
-          @endphp
-          {{ $funcao }}<br />
-          @if (count($programa_secretarios) > 0)
+        @php
+          $funcao = 'Secretários(as) do Programa';
+          $programa_secretarios = array_filter($responsaveis, function ($record) use ($funcao) {
+            return ($record['funcao'] == $funcao);
+          });
+          $programa_secretarios = !empty($programa_secretarios) ? json_decode(array_values($programa_secretarios)[0]['users'], true) : [];
+        @endphp
+        @if (count($programa_secretarios) > 0)
+          <div class="responsaveis-lista">
+            {{ $funcao }}<br />
             <ul class="list-unstyled">
               @foreach($programa_secretarios as $user)
                 <li class="modo-visualizacao">
-                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Secretários(as) do Programa', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                     {{ $user['name'] }}
                   </a>
                 </li>
               @endforeach
             </ul>
-          @endif
-        </div>
-        <div class="responsaveis-lista">
-          @php
-            $funcao = 'Coordenadores(as) do Programa';
-            $programa_coordenadores = array_filter($responsaveis, function ($record) use ($funcao) {
-              return ($record['funcao'] == $funcao);
-            });
-            $programa_coordenadores = !empty($programa_coordenadores) ? json_decode(array_values($programa_coordenadores)[0]['users'], true) : [];
-          @endphp
-          {{ $funcao }}<br />
-          @if (count($programa_coordenadores) > 0)
+          </div>
+        @endif
+        @php
+          $funcao = 'Coordenadores(as) do Programa';
+          $programa_coordenadores = array_filter($responsaveis, function ($record) use ($funcao) {
+            return ($record['funcao'] == $funcao);
+          });
+          $programa_coordenadores = !empty($programa_coordenadores) ? json_decode(array_values($programa_coordenadores)[0]['users'], true) : [];
+        @endphp
+        @if (count($programa_coordenadores) > 0)
+          <div class="responsaveis-lista">
+            {{ $funcao }}<br />
             <ul class="list-unstyled">
               @foreach($programa_coordenadores as $user)
                 <li class="modo-visualizacao">
-                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Coordenadores(as) do Programa', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                  <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $funcao }}', {{ $programa_id }})" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                     {{ $user['name'] }}
                   </a>
                 </li>
               @endforeach
             </ul>
-          @endif
+          </div>
+        @endif
+      @endif
+      @php
+        $grupo = 'Funcionários(as) do Setor';
+        $funcionarios_setor = array_filter($responsaveis, function ($record) use ($grupo) {
+          return ($record['grupo'] == $grupo);
+        });
+        $funcao = !empty($funcionarios_setor) ? array_values($funcionarios_setor)[0]['funcao'] : '';
+        $funcionarios_setor = !empty($funcionarios_setor) ? json_decode(array_values($funcionarios_setor)[0]['users'], true) : [];
+      @endphp
+      @if (count($funcionarios_setor) > 0)
+        <div class="responsaveis-lista">
+          {{ $funcao }}<br />
+          <ul class="list-unstyled">
+            @foreach($funcionarios_setor as $user)
+              <li class="modo-visualizacao">
+                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $grupo }}')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                  {{ $user['name'] }}
+                </a>
+              </li>
+            @endforeach
+          </ul>
         </div>
       @endif
-      <div class="responsaveis-lista">
-        @php
-          $funcao = 'Serviço de Pós-Graduação';
-          $posgraduacao_servico = array_filter($responsaveis, function ($record) use ($funcao) {
-            return ($record['funcao'] == $funcao);
-          });
-        @endphp
-        {{ $funcao }}<br />
-        @php
-          $posgraduacao_servico = !empty($posgraduacao_servico) ? json_decode(array_values($posgraduacao_servico)[0]['users'], true) : [];
-        @endphp
-        @if (count($posgraduacao_servico) > 0)
+      @php
+        $grupo = 'Coordenadores(as) do Setor';
+        $coordenadores_setor = array_filter($responsaveis, function ($record) use ($grupo) {
+          return ($record['grupo'] == $grupo);
+        });
+        $funcao = !empty($coordenadores_setor) ? array_values($coordenadores_setor)[0]['funcao'] : '';
+        $coordenadores_setor = !empty($coordenadores_setor) ? json_decode(array_values($coordenadores_setor)[0]['users'], true) : [];
+      @endphp
+      @if (count($coordenadores_setor) > 0)
+        <div class="responsaveis-lista">
+          {{ $funcao }}<br />
           <ul class="list-unstyled">
-            @foreach($posgraduacao_servico as $user)
+            @foreach($coordenadores_setor as $user)
               <li class="modo-visualizacao">
-                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Funcionários(as) do Setor')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
+                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, '{{ $grupo }}')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
                   {{ $user['name'] }}
                 </a>
               </li>
             @endforeach
           </ul>
-        @endif
-      </div>
-      <div class="responsaveis-lista">
-        @php
-          $funcao = 'Coordenadores(as) da Pós-Graduação';
-          $posgraduacao_coordenadores = array_filter($responsaveis, function ($record) use ($funcao) {
-            return ($record['funcao'] == $funcao);
-          });
-          $posgraduacao_coordenadores = !empty($posgraduacao_coordenadores) ? json_decode(array_values($posgraduacao_coordenadores)[0]['users'], true) : [];
-        @endphp
-        {{ $funcao }}<br />
-        @if (count($posgraduacao_coordenadores) > 0)
-          <ul class="list-unstyled">
-            @foreach($posgraduacao_coordenadores as $user)
-              <li class="modo-visualizacao">
-                <a href="javascript:void(0);" onclick="open_responsavel({{ $user['id'] }}, 'Coordenadores(as) do Setor')" class="nome-responsavel-display"><i class="fas fa-info-circle"></i>
-                  {{ $user['name'] }}
-                </a>
-              </li>
-            @endforeach
-          </ul>
-        @endif
-      </div>
+        </div>
+      @endif
     </div>
   @endif
 </div>

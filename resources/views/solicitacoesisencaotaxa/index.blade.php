@@ -22,7 +22,13 @@
             <label for="somente_da_ultima_selecao" style="margin: 0;">
               Somente da Última Seleção
               @if (auth()->user()?->can('perfiladmin') || in_array(auth()->user()?->grupo_funcao_maximo, ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']))
-                de cada Programa e de Aluno Especial
+                @php
+                  $gerencia_algum_programa = auth()->user()?->gerenciaAlgumPrograma();
+                  $gerencia_categoria_aluno_especial = auth()->user()?->gerenciaCategoriaAlunoEspecial();
+                @endphp
+                @if ($gerencia_algum_programa) de cada Programa @endif
+                @if ($gerencia_algum_programa && $gerencia_categoria_aluno_especial) e @endif
+                @if ($gerencia_categoria_aluno_especial) de Aluno Especial @endif
               @endif
             </label>
           </div>
@@ -38,6 +44,9 @@
           <th>Nro</th>
           <th></th>
           <th>Candidato</th>
+          @if (!auth()->user()->gerenciaVinculoUnico())
+            <th width="10%">Vínculo</th>
+          @endif
           <th>Seleção</th>
           <th width="10%">Criada em</th>
           <th width="10%">Atualização</th>
@@ -64,6 +73,9 @@
               {{ $nome }}
               @include('solicitacoesisencaotaxa.partials.status-muted')
             </td>
+            @if (!auth()->user()->gerenciaVinculoUnico())
+              <td>{{ $solicitacaoisencaotaxa->selecao->vinculo->nome }}</td>
+            @endif
             <td>
               {{ $solicitacaoisencaotaxa->selecao->nome }}{{ $solicitacaoisencaotaxa->selecao->exigeCategoria() ? ' (' . $solicitacaoisencaotaxa->selecao->categoria->nome . ')' : '' }}
             </td>
@@ -104,7 +116,7 @@
             'paging': {{ $paginar ? 'true' : 'false' }},
             'sort': true,
             'order': [
-              [5, 'desc']    // ordenado por data de atualização descrescente
+              [$('.tabela-solicitacoesisencaotaxa thead th').length - 1, 'desc']    // ordena decrescente pela ultima coluna
             ],
             'fixedHeader': true,
             columnDefs: [{

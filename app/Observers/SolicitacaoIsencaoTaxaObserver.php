@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Mail\SolicitacaoIsencaoTaxaMail;
-use App\Models\Parametro;
 use App\Models\SolicitacaoIsencaoTaxa;
 
 class SolicitacaoIsencaoTaxaObserver
@@ -60,8 +59,10 @@ class SolicitacaoIsencaoTaxaObserver
                 $passo = 'envio - para gestores';
                 $user = $solicitacaoisencaotaxa->pessoas('Autor');
                 $servicoposgraduacao_nome = 'Prezados(as) Srs(as). do Serviço de Pós-Graduação';
-                \Mail::to(Parametro::first()->email_servicoposgraduacao)
-                    ->queue(new SolicitacaoIsencaoTaxaMail(compact('passo', 'solicitacaoisencaotaxa', 'user', 'servicoposgraduacao_nome')));
+                $email_setorresponsavel = $solicitacaoisencaotaxa->selecao->vinculo->email_setorresponsavel;
+                if ($email_setorresponsavel)
+                    \Mail::to($email_setorresponsavel)
+                        ->queue(new SolicitacaoIsencaoTaxaMail(compact('passo', 'solicitacaoisencaotaxa', 'user', 'servicoposgraduacao_nome')));
 
             } elseif (($solicitacaoisencaotaxa->getOriginal('estado') == 'Isenção de Taxa em Avaliação') &&                      // se o estado anterior era Isenção de Taxa em Avaliação
                       in_array($solicitacaoisencaotaxa->estado, ['Isenção de Taxa Aprovada', 'Isenção de Taxa Rejeitada'])) {    // se o novo estado é Isenção de Taxa Aprovada ou Isenção de Taxa Rejeitada

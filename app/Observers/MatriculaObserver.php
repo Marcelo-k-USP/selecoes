@@ -5,8 +5,6 @@ namespace App\Observers;
 use App\Mail\MatriculaMail;
 use App\Models\Disciplina;
 use App\Models\Matricula;
-use App\Models\Parametro;
-use App\Models\Programa;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
 use App\Models\User;
@@ -62,8 +60,8 @@ class MatriculaObserver
         $user = $matricula->pessoas('Autor');
         $extras = json_decode($matricula->extras, true);
         $arquivos = [];
-        $boleto_momento_envio = Parametro::first()->boleto_momento_envio;
-        $email_secaoinformatica = Parametro::first()->email_secaoinformatica;
+        $boleto_momento_envio = $matricula->selecao->vinculo->boleto_momento_envio;
+        $email_secaoinformatica = $matricula->selecao->vinculo->email_secaoinformatica;
 
         if ($matricula->isDirty('estado')) {                                    // se a alteração na matrícula foi no estado
             if (($matricula->getOriginal('estado') == 'Aguardando Envio') &&    // se o estado anterior era Aguardando Envio
@@ -93,7 +91,7 @@ class MatriculaObserver
                 // envia e-mails avisando o setor responsável sobre a realização da matrícula
                 // envio do e-mail "13" do README.md
                 $passo = 'envio - para gestores';
-                foreach (collect((new Programa)->obterResponsaveis())->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
+                foreach (collect($matricula->selecao->responsaveis)->firstWhere('grupo', 'Funcionários(as) do Setor')['users'] as $funcionario_setor) {
                     $responsavel_nome = 'Prezado(a) Sr.(a) ' . Pessoa::obterNome($funcionario_setor->codpes);
                     \Mail::to($funcionario_setor->email)
                         ->queue(new MatriculaMail(compact('passo', 'matricula', 'user', 'responsavel_nome')));
@@ -105,7 +103,7 @@ class MatriculaObserver
                 // envia e-mail avisando o candidato da pré-aprovação da matrícula
                 // envio do e-mail "16" do README.md
                 $passo = 'pré-aprovação';
-                $link_acompanhamento = (($matricula->selecao->categoria?->nome == 'Aluno Especial') ? Parametro::first()->link_acompanhamento_especiais : $matricula->selecao->programa?->link_acompanhamento);
+                $link_acompanhamento = (($matricula->selecao->categoria?->nome == 'Aluno Especial') ? $matricula->selecao->categoria->link_acompanhamento : $matricula->selecao->programa?->link_acompanhamento);
                 \Mail::to($user->email)
                     ->queue(new MatriculaMail(compact('passo', 'matricula', 'user', 'link_acompanhamento')));
 

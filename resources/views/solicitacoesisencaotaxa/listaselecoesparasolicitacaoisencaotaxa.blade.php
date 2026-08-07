@@ -9,43 +9,44 @@
     </div>
   </div>
 
-  @php
-    $existem_selecoes = false;
-    foreach ($categorias as $categoria)
-      if ($categoria->selecoes->count() > 0) {
-        $existem_selecoes = true;
-        break;
-      }
-  @endphp
-
-  @if ($existem_selecoes)
+  @if ($vinculos->count() > 0)
     <br />
     Deseja solicitar isenção de taxa para:<br />
     <table class="table table-sm table-hover solicitacao-isencao-taxa display responsive" style="width: 100%;">
       <thead>
         <tr>
-          <th style="border: none;"><span class="d-none">Seleções</span></td>
+          <th style="border: none;"><span class="d-none">Seleções</span></th>
         </tr>
       </thead>
       <tbody>
-        @foreach ($categorias as $categoria)
-          @if ($categoria->selecoes->count())
-            <tr>
-              <td>
-                {{ $categoria->nome }}
-                @foreach ($categoria->selecoes as $selecao)
+        @foreach ($vinculos as $vinculo)
+          <tr>
+            <td>
+              {{ $vinculo->nome }}<br />
+              @if ($vinculo->categorias->count() > 0)
+                @foreach ($vinculo->categorias as $categoria)
+                  @if ($categoria->selecoes->count())
+                    <div class="ml-3">
+                      {{ $categoria->nome }}
+                    </div>
+                    @foreach ($categoria->selecoes as $selecao)
+                      <div class="ml-5">
+                        <a href="solicitacoesisencaotaxa/create/{{ $selecao['id'] }}">{{ $selecao->nome }} @if (!is_null($selecao->descricao)) - {{ $selecao->descricao }} @endif </a>
+                      </div>
+                    @endforeach
+                    <br />
+                  @endif
+                @endforeach
+                <br />
+              @else
+                @foreach ($vinculo->selecoes as $selecao)
                   <div class="ml-3">
-                    <a href="solicitacoesisencaotaxa/create/{{ $selecao['id'] }}">{{ $selecao->nome }}
-                      @if (!is_null($selecao->descricao))
-                        - {{ $selecao->descricao }}
-                      @endif
-                    </a>
+                    <a href="solicitacoesisencaotaxa/create/{{ $selecao['id'] }}">{{ $selecao->nome }} @if (!is_null($selecao->descricao)) - {{ $selecao->descricao }} @endif </a>
                   </div>
                 @endforeach
-                <br>
-              </td>
-            </tr>
-          @endif
+              @endif
+            </td>
+          </tr>
         @endforeach
       </tbody>
     </table>

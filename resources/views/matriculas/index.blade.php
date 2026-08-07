@@ -22,7 +22,13 @@
             <label for="somente_da_ultima_selecao" style="margin: 0;">
               Somente da Última Seleção
               @if (auth()->user()?->can('perfiladmin') || in_array(auth()->user()?->grupo_funcao_maximo, ['Funcionários(as) do Setor', 'Coordenadores(as) do Setor']))
-                de cada Programa e de Aluno Especial
+                @php
+                  $gerencia_algum_programa = auth()->user()?->gerenciaAlgumPrograma();
+                  $gerencia_categoria_aluno_especial = auth()->user()?->gerenciaCategoriaAlunoEspecial();
+                @endphp
+                @if ($gerencia_algum_programa) de cada Programa @endif
+                @if ($gerencia_algum_programa && $gerencia_categoria_aluno_especial) e @endif
+                @if ($gerencia_categoria_aluno_especial) de Aluno Especial @endif
               @endif
             </label>
           </div>
@@ -38,8 +44,11 @@
           <th>Nro</th>
           <th></th>
           <th>Candidato</th>
+          @if (!auth()->user()->gerenciaVinculoUnico())
+            <th width="10%">Vínculo</th>
+          @endif
           <th>Seleção</th>
-          <th>Nível com Linha de Pesquisa/Tema ou Disciplina(s)</th>
+          <th>Nível com Linha de Pesquisa/Tema ou Disciplina(s) ou Orientador(a)</th>
           <th width="10%">Criada em</th>
           <th width="10%">Atualização</th>
         </tr>
@@ -66,6 +75,9 @@
               {{ $nome }}
               @include('matriculas.partials.status-muted')
             </td>
+            @if (!auth()->user()->gerenciaVinculoUnico())
+              <td>{{ $matricula->selecao->vinculo->nome }}</td>
+            @endif
             <td>
               {{ $matricula->selecao->nome }}{{ $matricula->selecao->exigeCategoria() ? ' (' . $matricula->selecao->categoria->nome . ')' : '' }}
             </td>
@@ -82,11 +94,14 @@
               @if (!is_null($nivel_nome))
                 {{ $nivel_nome }} em
               @endif
-              @if (!is_null($matricula->linha_pesquisa))
+              @if ($matricula->selecao->exigeLinhaPesquisa() && !is_null($matricula->linha_pesquisa))
                 {{ $matricula->linha_pesquisa }}
               @endif
-              @if (!is_null($matricula->disciplinas))
+              @if ($matricula->selecao->exigeDisciplinas() && !is_null($matricula->disciplinas))
                 {!! $matricula->disciplinas !!}
+              @endif
+              @if ($matricula->selecao->exigeOrientador() && !is_null($matricula->orientador))
+                {{ $matricula->orientador }}
               @endif
             </td>
             <td class="text-right">
@@ -126,7 +141,7 @@
             'paging': {{ $paginar ? 'true' : 'false' }},
             'sort': true,
             'order': [
-              [6, 'desc']    // ordenado por data de atualização descrescente
+              [$('.tabela-matriculas thead th').length - 1, 'desc']    // ordena decrescente pela ultima coluna
             ],
             'fixedHeader': true,
             columnDefs: [{

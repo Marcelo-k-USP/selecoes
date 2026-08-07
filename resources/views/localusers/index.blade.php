@@ -26,7 +26,7 @@
   @include('localusers.partials.modal')
 
   @if (isset($localusers) && ($localusers->count() > 0))
-    <table class="table table-striped table-hover datatable-nopagination display responsive" style="width:100%">
+    <table class="table table-striped table-hover tabela-localusers display responsive" style="width:100%">
       <thead>
         <tr>
           <th width="20%">Nome</th>
@@ -84,13 +84,13 @@
   <script type="text/javascript">
     $(document).ready(function() {
 
-      oTable = $('.datatable-nopagination').DataTable({
+      oTable = $('.tabela-localusers').DataTable({
         stateSave: true,    // não perde a ordenação prévia ao clique do botão de confirmar e-mail
         dom:
           't{{ $paginar ? 'p' : '' }}',
           'paging': {{ $paginar ? 'true' : 'false' }},
           'order': [
-            [6, 'desc']    // ordenado por data de atualização descrescente
+            [$('.tabela-localusers thead th').length - 1, 'desc']    // ordena decrescente pela ultima coluna
           ],
           columnDefs: [
             { targets: -1, orderable: false }    // desativa ordenação da última coluna

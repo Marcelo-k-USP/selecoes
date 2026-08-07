@@ -34,7 +34,7 @@ class SelecaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($selecao->programa_id);
+            return $user->gerenciaPrograma($selecao->programa_id, $selecao->vinculo_id);
         else
             return false;
     }
@@ -62,7 +62,7 @@ class SelecaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($selecao->programa_id);
+            return $user->gerenciaPrograma($selecao->programa_id, $selecao->vinculo_id);
         else
             return false;
     }
@@ -79,7 +79,7 @@ class SelecaoPolicy
         if (Gate::allows('perfiladmin'))
             return true;
         elseif (Gate::allows('perfilgerente'))
-            return $user->gerenciaPrograma($selecao->programa_id);
+            return $user->gerenciaPrograma($selecao->programa_id, $selecao->vinculo_id);
         else
             return false;
     }

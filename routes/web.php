@@ -14,13 +14,13 @@ use App\Http\Controllers\LinhaPesquisaController;
 use App\Http\Controllers\LocalUserController;
 use App\Http\Controllers\MatriculaController;
 use App\Http\Controllers\MotivoIsencaoTaxaController;
-use App\Http\Controllers\ParametroController;
 use App\Http\Controllers\ProgramaController;
 use App\Http\Controllers\ResponsavelController;
 use App\Http\Controllers\SelecaoController;
 use App\Http\Controllers\SolicitacaoIsencaoTaxaController;
 use App\Http\Controllers\TipoArquivoController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VinculoController;
 use App\Http\Controllers\Auth\LoginController;
 
 Route::get('/', [IndexController::class, 'index'])->name('home');
@@ -151,6 +151,10 @@ Route::post('tiposarquivo/create', [TipoArquivoController::class, 'store']);
 Route::get('tiposarquivo/edit/{tipoarquivo}', [TipoArquivoController::class, 'edit']);
 Route::put('tiposarquivo/edit/{tipoarquivo}', [TipoArquivoController::class, 'update']);
 
+// TIPOS DE ARQUIVO > VÍNCULOS
+Route::post('tiposarquivo/{tipoarquivo}/vinculos', [TipoArquivoController::class, 'storeVinculo']);
+Route::delete('tiposarquivo/{tipoarquivo}/vinculos/{vinculo}', [TipoArquivoController::class, 'destroyVinculo']);
+
 // TIPOS DE ARQUIVO > CATEGORIAS
 Route::post('tiposarquivo/{tipoarquivo}/categorias', [TipoArquivoController::class, 'storeCategoria']);
 Route::delete('tiposarquivo/{tipoarquivo}/categorias/{categoria}', [TipoArquivoController::class, 'destroyCategoria']);
@@ -159,13 +163,12 @@ Route::delete('tiposarquivo/{tipoarquivo}/categorias/{categoria}', [TipoArquivoC
 Route::post('tiposarquivo/{tipoarquivo}/niveisprogramas', [TipoArquivoController::class, 'storeNivelPrograma']);
 Route::delete('tiposarquivo/{tipoarquivo}/niveisprogramas/{nivelprograma}', [TipoArquivoController::class, 'destroyNivelPrograma']);
 
-// PARÂMETROS
-Route::get('parametros', [ParametroController::class, 'edit'])->name('parametros.edit');
-Route::put('parametros', [ParametroController::class, 'update'])->name('parametros.update');
+// VÍNCULOS
+Route::resource('vinculos', VinculoController::class);
 
 // FUNÇÕES
-Route::get('funcoes', [FuncaoController::class, 'edit'])->name('funcoes.edit');
-Route::put('funcoes', [FuncaoController::class, 'update'])->name('funcoes.update');
+Route::get('funcoes/{vinculo?}', [FuncaoController::class, 'edit'])->name('funcoes.edit');
+Route::put('funcoes/{vinculo}', [FuncaoController::class, 'update'])->name('funcoes.update');
 
 // RESPONSÁVEIS
 Route::get('responsaveis/{id}/{grupo_funcao}/{programa_id?}', [ResponsavelController::class, 'show']);

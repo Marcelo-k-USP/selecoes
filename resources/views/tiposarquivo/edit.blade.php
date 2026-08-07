@@ -34,8 +34,11 @@
           <div class="row">
             <div class="col-md-7">
               @include('tiposarquivo.show.card-principal')              {{-- Principal --}}
-              @if (in_array($objeto->classe_nome, ['Inscrições', 'Matrículas']))
-                @include('tiposarquivo.show.card-categorias')           {{-- Categorias --}}
+              @if ($modo == 'edit')
+                @include('tiposarquivo.show.card-vinculos')             {{-- Vínculos --}}
+                @if (in_array($objeto->classe_nome, ['Inscrições', 'Matrículas']))
+                  @include('tiposarquivo.show.card-categorias')         {{-- Categorias --}}
+                @endif
               @endif
             </div>
             <div class="col-md-5">

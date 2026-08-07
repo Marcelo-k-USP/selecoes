@@ -11,8 +11,6 @@ use App\Models\Inscricao;
 use App\Models\LinhaPesquisa;
 use App\Models\LocalUser;
 use App\Models\Nivel;
-use App\Models\Parametro;
-use App\Models\Programa;
 use App\Models\Selecao;
 use App\Models\SolicitacaoIsencaoTaxa;
 use App\Models\TipoArquivo;
@@ -88,8 +86,8 @@ class InscricaoController extends Controller
 
         \UspTheme::activeUrl('inscricoes/create');
         AtualizaStatusSelecoes::dispatch()->onConnection('sync');
-        $categorias = Selecao::listarSelecoesParaNovaInscricao();    // obtém as seleções dentro das categorias
-        return view('inscricoes.listaselecoesparanovainscricao', compact('categorias'));
+        $vinculos = Selecao::listarSelecoesParaNovaInscricao();    // obtém as seleções dentro dos vínculos
+        return view('inscricoes.listaselecoesparanovainscricao', compact('vinculos'));
     }
 
     /**
@@ -143,7 +141,7 @@ class InscricaoController extends Controller
         $selecao = Selecao::find($request->selecao_id);
         Gate::authorize('inscricoes.create', $selecao);
 
-        $user = \Auth::user();
+        $user = Auth::user();
 
         // transaction para não ter problema de inconsistência do DB
         $inscricao = DB::transaction(function () use ($request, $user, $selecao) {
@@ -215,21 +213,21 @@ class InscricaoController extends Controller
                     $cpf = $extras['cpf'];
                     $qtde_disciplinas_inscricoes_anteriores = Inscricao::where('extras->cpf', $cpf)->where('selecao_id', $inscricao->selecao->id)->where('estado', 'Enviada')->sum(DB::raw('JSON_LENGTH(extras->"$.disciplinas")'));
                     if (!$inscricao->selecao->exigeDisciplinas() ||
-                        (count($disciplinas_id) + $qtde_disciplinas_inscricoes_anteriores <= (Parametro::first()?->max_disciplinas_aluno_especial ?: PHP_INT_MAX))) {
+                        (count($disciplinas_id) + $qtde_disciplinas_inscricoes_anteriores <= ($inscricao->selecao->categoria->max_disciplinas ?: PHP_INT_MAX))) {
                         $inscricao->estado = 'Enviada';
                         $inscricao->save();
 
                         $info_adicional = '';
-                        $user = \Auth::user();
+                        $user = Auth::user();
                         if ($inscricao->selecao->tem_taxa && !SolicitacaoIsencaoTaxa::where('extras->cpf', $cpf ?? null)->where('selecao_id', $inscricao->selecao->id)->whereIn('estado', ['Isenção de Taxa Aprovada', 'Isenção de Taxa Aprovada Após Recurso'])->exists())
-                            if ((Parametro::first()->boleto_momento_envio == 'Envio da Inscrição/Matrícula') && $inscricao->boletoFoiGerado)
+                            if (($inscricao->selecao->vinculo->boleto_momento_envio == 'Envio da Inscrição/Matrícula') && $inscricao->boletoFoiGerado)
                                 $info_adicional = (!$inscricao->selecao->exigeDisciplinas() ? ' e seu boleto foi enviado, não deixe de pagá-lo' : ((count($disciplinas_id) == 1) ? ' e seu boleto foi enviado, não deixe de pagá-lo' : ' e seus boletos foram enviados, não deixe de pagá-los'));
 
                         $request->session()->flash('alert-success', 'Sua inscrição foi enviada' . $info_adicional);
                         \UspTheme::activeUrl('inscricoes');
                         return redirect()->to(url('inscricoes'))->with($this->monta_compact_index());    // se fosse return view, um eventual F5 do usuário duplicaria o registro... POSTs devem ser com redirect
                     } else {
-                        $request->session()->flash('alert-danger', 'Você pode se inscrever em no máximo ' . Parametro::first()->max_disciplinas_aluno_especial . ' disciplina(s) como aluno especial');
+                        $request->session()->flash('alert-danger', 'Você pode se inscrever em no máximo ' . $inscricao->selecao->categoria->max_disciplinas . ' disciplina(s) como aluno especial');
                         \UspTheme::activeUrl('inscricoes');
                         return view('inscricoes.edit', $this->monta_compact($inscricao, 'edit', 'disciplinas'));
                     }
@@ -298,7 +296,7 @@ class InscricaoController extends Controller
                 $extras['disciplinas'][] = $request->id;
                 $inscricao->extras = json_encode($extras);
 
-                if (Parametro::first()->boleto_momento_envio == 'Envio da Inscrição/Matrícula')
+                if ($inscricao->selecao->vinculo->boleto_momento_envio == 'Envio da Inscrição/Matrícula')
                     // se já havia enviado a inscrição, avisa para reenviá-la
                     if ($inscricao->estado == 'Enviada') {
                         $inscricao->estado = 'Aguardando Envio';
@@ -336,7 +334,7 @@ class InscricaoController extends Controller
             unset($extras['disciplinas'][$indice]);
             $inscricao->extras = json_encode($extras);
 
-            if (Parametro::first()->boleto_momento_envio == 'Envio da Inscrição/Matrícula')
+            if ($inscricao->selecao->vinculo->boleto_momento_envio == 'Envio da Inscrição/Matrícula')
                 // se já havia enviado a inscrição, avisa para reenviá-la
                 if ($inscricao->estado == 'Enviada') {
                     $inscricao->estado = 'Aguardando Envio';
@@ -417,7 +415,7 @@ class InscricaoController extends Controller
             })->implode(',<br />')) : null);
         }
         $classe_nome = 'Inscricao';
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $max_upload_size = config('selecoes.upload_max_filesize');
         $niveis = Nivel::all();
 
         return compact('data', 'objetos', 'classe_nome', 'max_upload_size', 'niveis');
@@ -431,7 +429,6 @@ class InscricaoController extends Controller
         $classe_nome = 'Inscricao';
         $classe_nome_plural = 'inscricoes';
         $form = JSONForms::generateForm($objeto->selecao, $classe_nome, $objeto);
-        $responsaveis = $objeto->selecao->programa?->obterResponsaveis() ?? (new Programa())->obterResponsaveis();
         $extras = json_decode($objeto->extras, true);
         $objeto_disciplinas = ((isset($extras['disciplinas']) && is_array($extras['disciplinas'])) ? Disciplina::whereIn('id', $extras['disciplinas'])->orderBy('sigla')->get() : collect());
         $disciplinas = Disciplina::obterDisciplinasPossiveis($objeto->selecao);
@@ -439,7 +436,7 @@ class InscricaoController extends Controller
         $objeto->tiposarquivo = TipoArquivo::obterTiposArquivoDaSelecao('Inscricao', ($objeto->selecao->exigeNivel() ? collect([['nome' => $nivel]]) : collect()), $objeto->selecao)
             ->filter(function ($tipoarquivo) use ($inscricao) { return (!str_starts_with($tipoarquivo->nome, 'Boleto(s) de Pagamento')) || $inscricao->selecao->tem_taxa; })
             ->sortBy(function ($tipoarquivo) { return str_starts_with($tipoarquivo->nome, 'Boleto(s) de Pagamento') ? 1 : 0; });
-        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $objeto->selecao->programa_id)
+        $tiposarquivo_selecao = TipoArquivo::obterTiposArquivoPossiveis('Selecao', null, $objeto->selecao)
             ->filter(function ($tipoarquivo) use ($inscricao) { return ($tipoarquivo->nome !== 'Normas para Isenção de Taxa') || $inscricao->selecao->tem_taxa; });
         $solicitacaoisencaotaxa_aprovada = SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)
                                                                  ->where('selecao_id', $objeto->selecao->id)
@@ -450,9 +447,9 @@ class InscricaoController extends Controller
                 if ($inscricao->arquivos->filter(fn($a) => ($a->pivot->tipo == 'Boleto(s) de Pagamento') && str_contains(strtolower($a->nome_original), strtolower($disciplina->sigla)))->count() == 0)
                     $disciplinas_sem_boleto[] = $disciplina;
         $inscricao->disciplinas_sem_boleto = $disciplinas_sem_boleto;
-        $boleto_momento_envio = Parametro::first()->boleto_momento_envio;
-        $max_upload_size = config('selecoes-pos.upload_max_filesize');
+        $boleto_momento_envio = $inscricao->selecao->vinculo->boleto_momento_envio;
+        $max_upload_size = config('selecoes.upload_max_filesize');
 
-        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'responsaveis', 'objeto_disciplinas', 'disciplinas', 'nivel', 'tiposarquivo_selecao', 'solicitacaoisencaotaxa_aprovada', 'boleto_momento_envio', 'max_upload_size', 'scroll');
+        return compact('data', 'objeto', 'classe_nome', 'classe_nome_plural', 'form', 'modo', 'objeto_disciplinas', 'disciplinas', 'nivel', 'tiposarquivo_selecao', 'solicitacaoisencaotaxa_aprovada', 'boleto_momento_envio', 'max_upload_size', 'scroll');
     }
 }

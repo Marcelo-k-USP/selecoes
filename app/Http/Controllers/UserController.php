@@ -100,7 +100,7 @@ class UserController extends Controller
     {
         Gate::authorize('users.update');
 
-        $user = \Auth::user();
+        $user = Auth::user();
         $requests = $request->all();
 
         # vamos atualizar as notificações
@@ -144,7 +144,7 @@ class UserController extends Controller
         Gate::authorize('users.viewAny');
         if ($request->term) {
             $results = [];
-            if (config('selecoes-pos.usar_replicado')) {
+            if (config('selecoes.usar_replicado')) {
                 $pessoas = \Uspdev\Replicado\Pessoa::procurarPorNome($request->term, true, true, 'SERVIDOR', config('replicado.codundclg'), $request->tipvinext);
                 // limitando a resposta em 50 elementos
                 $pessoas = array_slice($pessoas, 0, 50);
@@ -185,7 +185,7 @@ class UserController extends Controller
         Gate::authorize('usuario');
         if ($request->term) {
             $results = [];
-            if (config('selecoes-pos.usar_replicado')) {
+            if (config('selecoes.usar_replicado')) {
                 $pessoas = \Uspdev\Replicado\Pessoa::procurarPorCodigoOuNome($request->term, true);
                 // limitando a resposta em 50 elementos
                 $pessoas = array_slice($pessoas, 0, 50);
@@ -239,8 +239,8 @@ class UserController extends Controller
     {
         Gate::authorize('admin');
 
-        session(['adminCodpes' => \Auth::user()->codpes]);
-        \Auth::login($user, true);
+        session(['adminCodpes' => Auth::user()->codpes]);
+        Auth::login($user, true);
         session(['perfil' => 'usuario']);
 
         return redirect('/');
@@ -255,7 +255,7 @@ class UserController extends Controller
 
         $user = User::obterPorCodpes(session('adminCodpes'));
         session(['adminCodpes' => 0]);
-        \Auth::login($user, true);
+        Auth::login($user, true);
         session(['perfil' => 'admin']);
 
         return redirect('/');
@@ -268,6 +268,6 @@ class UserController extends Controller
      */
     public function meuperfil()
     {
-        return redirect('users/' . \Auth::user()->id);
+        return redirect('users/' . Auth::user()->id);
     }
 }

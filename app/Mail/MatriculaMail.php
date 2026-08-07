@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use App\Models\Matricula;
-use App\Models\Parametro;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -44,7 +43,7 @@ class MatriculaMail extends Mailable
         $this->passo = $data['passo'];
         $this->matricula = $data['matricula'];
         $this->user = $data['user'];
-        $this->boleto_momento_envio = Parametro::first()->boleto_momento_envio;
+        $this->boleto_momento_envio = $this->matricula->selecao->vinculo->boleto_momento_envio;
 
         switch ($this->passo) {
             case 'início':

@@ -36,8 +36,8 @@ class AlertaCandidatoIncompletude implements ShouldQueue
      */
     public function handle()
     {
-        $objeto = ClasseUtils::obterClasse($this->classe_nome)::findOrFail($this->objeto_id);
-        if ($objeto->estado === 'Aguardando Envio')
+        $objeto = ClasseUtils::obterClasse($this->classe_nome)::find($this->objeto_id);
+        if ($objeto && $objeto->estado === 'Aguardando Envio')
             switch ($this->classe_nome) {
                 case 'SolicitacaoIsencaoTaxa':
                     // envia e-mail para o candidato que não enviou sua solicitação de isenção de taxa a respeito da proximidade do término do período de solicitações de isenção de taxa

@@ -3,12 +3,22 @@
 namespace App\Observers;
 
 use App\Mail\SelecaoMail;
-use App\Models\Parametro;
 use App\Models\Selecao;
 use Illuminate\Support\Str;
 
 class SelecaoObserver
 {
+    /**
+     * Handle the Selecao "saving" event.
+     *
+     * @param  \App\Models\Selecao  $selecao
+     * @return void
+     */
+    public function saving(Selecao $selecao)
+    {
+        $selecao->injetarUnidadeNosTemplates();
+    }
+
     /**
      * Handle the Selecao "created" event.
      *
@@ -49,7 +59,7 @@ class SelecaoObserver
                 // envia e-mail avisando o gerenciamento do site da unidade sobre a seleção
                 // envio do e-mail "1" do README.md
                 $passo = 'seleção elaborada';
-                $email_gerenciamentosite = Parametro::first()->email_gerenciamentosite;
+                $email_gerenciamentosite = $selecao->vinculo->email_gerenciamentosite;
                 if ($email_gerenciamentosite)
                     \Mail::to($email_gerenciamentosite)
                         ->queue(new SelecaoMail(compact('passo', 'selecao')));
@@ -103,7 +113,7 @@ class SelecaoObserver
         $selecao_nome_novo = (($selecao->categoria?->nome === 'Aluno Especial') ? 'Aluno Especial ' : $selecao->programa?->sigla . ' para ingresso ');
         if ($selecao->exigePrograma())
             $selecao_nome_novo .= (($selecao->ingresso_semestre == 0) ? ' em ' : ' no ');
-        $selecao_nome_novo .= Str::squish(' ' . (($selecao->ingresso_semestre == 0) ? $selecao->ingresso_ano : $selecao->ingresso_semestre . 'º semestre de ' . $selecao->ingresso_ano));
+        $selecao_nome_novo = Str::squish($selecao_nome_novo . ' ' . (($selecao->ingresso_semestre == 0) ? $selecao->ingresso_ano : $selecao->ingresso_semestre . 'º semestre de ' . $selecao->ingresso_ano));
         if ($selecao->nome !== $selecao_nome_novo)
             $dados_a_atualizar['nome'] = $selecao_nome_novo;
 
