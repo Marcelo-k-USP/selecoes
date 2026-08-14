@@ -20,7 +20,6 @@ class FuncaoSeeder extends Seeder
         // por enquanto só preenche automaticamente os Docentes do Programa para o vínculo de Pós-Graduação, ainda não há criação automática para as demais funções
         $programas = Posgraduacao::programas();
         $funcao_docente = Funcao::where('nome', 'Docentes do Programa')->first();
-        $vinculo_posgraduacao = Vinculo::where('nome', 'Pós-Graduação')->first();
 
         foreach ($programas as $programa) {
             $programa_sistema = Programa::where('nome', 'LIKE', "{$programa['nomcur']}%")->first();
@@ -33,7 +32,7 @@ class FuncaoSeeder extends Seeder
                 if ($user) {
                     $jaAssociado = $user->programas()->where('user_funcao.programa_id', $programa_sistema->id)->wherePivot('funcao_id', $funcao_docente->id)->exists();
                     if (!$jaAssociado)
-                        $user->associarProgramaFuncao($programa_sistema->nome, 'Docentes do Programa', $vinculo_posgraduacao->id);
+                        $user->associarProgramaFuncao($programa_sistema->nome, 'Docentes do Programa');
                 }
             }
         }
