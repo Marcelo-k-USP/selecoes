@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,        // adiciona permissions
             SetorReplicadoSeeder::class,    // adiciona todos os setores da unidade do replicado
             ProgramaSeeder::class,          // adiciona programas
+            VinculoSeeder::class,           // adiciona vínculos
             CategoriaSeeder::class,         // adiciona categorias
             FuncaoSeeder::class,            // adiciona funções
             NivelSeeder::class,             // adiciona níveis
