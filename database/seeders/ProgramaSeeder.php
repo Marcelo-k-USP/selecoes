@@ -16,27 +16,19 @@ class ProgramaSeeder extends Seeder
      */
     public function run()
     {
-        $isIntegrado = config('selecoes.integracao-cadastros-auxiliares');
-
-        if(!$isIntegrado) {
-            $programas = Posgraduacao::listarProgramas();
-            foreach ($programas as $programa) {
-                $nome = "{$programa['nomcur']}";
-
+        if (!config('selecoes.integracao-cadastros-auxiliares'))
+            foreach (Posgraduacao::listarProgramas() as $programa)
                 Programa::updateOrCreate(
-                    ['nome' => $nome],
+                    ['nome' => $programa['nomcur']],
+                    [ 'sigla' => mb_strtoupper(mb_substr($programa['nomcur'], 0, 3)) . $programa['codcur'],
+                      'processos' => 'Inscrição' ]
                 );
-            }
-        }
-        else{
-            $programas = app(ProgramasClientInterface::class)->listar();
-            foreach ($programas as $programa) {
-                $nome = "{$programa['nomcur']} ({$programa['codslg']})";
-
+        else
+            foreach (app(ProgramasClientInterface::class)->listar() as $programa)
                 Programa::updateOrCreate(
-                    ['nome' => $nome],
+                    ['nome' => $programa['nomcur'] . ' (' . $programa['codslg'] . ')'],
+                    [ 'sigla' => mb_strtoupper(mb_substr($programa['nomcur'], 0, 3)) . $programa['codcur'],
+                      'processos' => 'Inscrição' ]
                 );
-            }
-        }
     }
 }
