@@ -60,14 +60,22 @@ class JoinVinculosAndParametrosTables extends Migration
             ]);
         }
 
+        DB::table('vinculos')->whereNull('exige_categoria')->update(['exige_categoria' => false]);
+        DB::table('vinculos')->whereNull('permite_programa')->update(['permite_programa' => false]);
+        DB::table('vinculos')->whereNull('permite_taxa')->update(['permite_taxa' => false]);
+        DB::table('vinculos')->whereNull('permite_nivel')->update(['permite_nivel' => false]);
+        DB::table('vinculos')->whereNull('permite_linhapesquisa')->update(['permite_linhapesquisa' => false]);
+        DB::table('vinculos')->whereNull('permite_disciplinas')->update(['permite_disciplinas' => false]);
+        DB::table('vinculos')->whereNull('exige_orientador')->update(['exige_orientador' => false]);
+
         Schema::table('vinculos', function (Blueprint $table) {
-            $table->boolean('exige_categoria')->nullable(false)->change();
-            $table->boolean('permite_programa')->nullable(false)->change();
-            $table->boolean('permite_taxa')->nullable(false)->change();
-            $table->boolean('permite_nivel')->nullable(false)->change();
-            $table->boolean('permite_linhapesquisa')->nullable(false)->change();
-            $table->boolean('permite_disciplinas')->nullable(false)->change();
-            $table->boolean('exige_orientador')->nullable(false)->change();
+            $table->boolean('exige_categoria')->nullable(false)->default(false)->change();
+            $table->boolean('permite_programa')->nullable(false)->default(false)->change();
+            $table->boolean('permite_taxa')->nullable(false)->default(false)->change();
+            $table->boolean('permite_nivel')->nullable(false)->default(false)->change();
+            $table->boolean('permite_linhapesquisa')->nullable(false)->default(false)->change();
+            $table->boolean('permite_disciplinas')->nullable(false)->default(false)->change();
+            $table->boolean('exige_orientador')->nullable(false)->default(false)->change();
         });
 
         Schema::dropIfExists('parametros');
