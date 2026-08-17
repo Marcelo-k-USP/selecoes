@@ -16,6 +16,7 @@
         "postcss": "^8.5.25"
     },
     "overrides": {
-        "brace-expansion": "^1.1.16"
+        "brace-expansion": "^1.1.16",
+        "fast-uri": ">=3.1.5"
     }
 }
