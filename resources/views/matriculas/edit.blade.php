@@ -42,7 +42,7 @@
             @if ($matricula->selecao->exigeNivel())
               - {{ $nivel }}
             @endif
-            @if (!auth()->user()-gerenciaVinculoUnico())
+            @if (!auth()->user()->gerenciaVinculoUnico())
               ({{ $matricula->selecao->vinculo->nome }})
             @endif
             <br />
