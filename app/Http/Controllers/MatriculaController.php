@@ -194,7 +194,7 @@ class MatriculaController extends Controller
      */
     public function update(Request $request, Matricula $matricula)
     {
-        if ($matricula->estado === 'Aprovada') {
+        if (($matricula->estado === 'Aprovada') && ($request->conjunto_alterado != 'estado')) {
             $request->session()->flash('alert-danger', 'Matrícula já aprovada não pode ser editada.');
             \UspTheme::activeUrl('matriculas');
             return view('matriculas.edit', $this->monta_compact($matricula, 'edit'));
@@ -219,7 +219,7 @@ class MatriculaController extends Controller
 
                         $info_adicional = '';
                         $user = Auth::user();
-                        if ($matricula->selecao->tem_taxa && !SolicitacaoIsencaoTaxa::where('extras->cpf', $cpf ?? null)->where('selecao_id', $matricula->selecao->id)->whereIn('estado', ['Isenção de Taxa Aprovada', 'Isenção de Taxa Aprovada Após Recurso'])->exists())
+                        if ($matricula->selecao->tem_taxa && !SolicitacaoIsencaoTaxa::where('extras->cpf', $cpf ?? null)->where('selecao_id', $matricula->selecao->id)->whereIn('estado', ['Aprovada', 'Aprovada Após Recurso'])->exists())
                             if (($matricula->selecao->vinculo->boleto_momento_envio == 'Envio da Inscrição/Matrícula') && $matricula->boletoFoiGerado)
                                 $info_adicional = (!$matricula->selecao->exigeDisciplinas() ? ' e seu boleto foi enviado, não deixe de pagá-lo' : ((count($disciplinas_id) == 1) ? ' e seu boleto foi enviado, não deixe de pagá-lo' : ' e seus boletos foram enviados, não deixe de pagá-los'));
 
@@ -440,7 +440,7 @@ class MatriculaController extends Controller
             ->filter(function ($tipoarquivo) use ($matricula) { return ($tipoarquivo->nome !== 'Normas para Isenção de Taxa') || $matricula->selecao->tem_taxa; });
         $solicitacaoisencaotaxa_aprovada = SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)
                                                                  ->where('selecao_id', $objeto->selecao->id)
-                                                                 ->where('estado', 'LIKE', 'Isenção de Taxa Aprovada%')->first();
+                                                                 ->where('estado', 'LIKE', 'Aprovada%')->first();
         $disciplinas_sem_boleto = [];
         if ($matricula->selecao->exigeDisciplinas())
             foreach ($objeto_disciplinas as $disciplina)

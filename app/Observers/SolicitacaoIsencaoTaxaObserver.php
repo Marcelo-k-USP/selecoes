@@ -44,7 +44,7 @@ class SolicitacaoIsencaoTaxaObserver
     {
         if ($solicitacaoisencaotaxa->isDirty('estado')) {                                    // se a alteração na solicitação de isenção de taxa foi no estado
             if (($solicitacaoisencaotaxa->getOriginal('estado') == 'Aguardando Envio') &&    // se o estado anterior era Aguardando Envio
-                ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Solicitada')) {         // se o novo estado é Isenção de Taxa Solicitada
+                ($solicitacaoisencaotaxa->estado == 'Enviada')) {                            // se o novo estado é Enviada
                 // trata-se do envio da solicitação de isenção de taxa
 
                 // envia e-mail para o candidato reconhecendo que ele enviou a solicitação de isenção de taxa
@@ -64,19 +64,19 @@ class SolicitacaoIsencaoTaxaObserver
                     \Mail::to($email_setorresponsavel)
                         ->queue(new SolicitacaoIsencaoTaxaMail(compact('passo', 'solicitacaoisencaotaxa', 'user', 'servicoposgraduacao_nome')));
 
-            } elseif (($solicitacaoisencaotaxa->getOriginal('estado') == 'Isenção de Taxa em Avaliação') &&                      // se o estado anterior era Isenção de Taxa em Avaliação
-                      in_array($solicitacaoisencaotaxa->estado, ['Isenção de Taxa Aprovada', 'Isenção de Taxa Rejeitada'])) {    // se o novo estado é Isenção de Taxa Aprovada ou Isenção de Taxa Rejeitada
+            } elseif (($solicitacaoisencaotaxa->getOriginal('estado') == 'Em Avaliação') &&      // se o estado anterior era Em Avaliação
+                      in_array($solicitacaoisencaotaxa->estado, ['Aprovada', 'Rejeitada'])) {    // se o novo estado é Aprovada ou Rejeitada
                 // trata-se da aprovação ou rejeição da solicitação de isenção de taxa
 
                 // envia e-mail avisando o candidato da aprovação/rejeição da solicitação de isenção de taxa
                 // envio do e-mail "7" do README.md
-                $passo = (($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Aprovada') ? 'aprovação' : 'rejeição');
+                $passo = (($solicitacaoisencaotaxa->estado == 'Aprovada') ? 'aprovação' : 'rejeição');
                 $user = $solicitacaoisencaotaxa->pessoas('Autor');
                 \Mail::to($user->email)
                     ->queue(new SolicitacaoIsencaoTaxaMail(compact('passo', 'solicitacaoisencaotaxa', 'user')));
 
-            } elseif (($solicitacaoisencaotaxa->getOriginal('estado') == 'Isenção de Taxa Rejeitada') &&    // se o estado anterior era Isenção de Taxa Rejeitada
-                      ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Aprovada Após Recurso')) {       // se o novo estado é Isenção de Taxa Aprovada Após Recurso
+            } elseif (($solicitacaoisencaotaxa->getOriginal('estado') == 'Rejeitada') &&    // se o estado anterior era Rejeitada
+                      ($solicitacaoisencaotaxa->estado == 'Aprovada Após Recurso')) {       // se o novo estado é Aprovada Após Recurso
                 // trata-se da aprovação da solicitação de isenção de taxa após recurso
 
                 // envia e-mail avisando o candidato da aprovação da solicitação de isenção de taxa após recurso

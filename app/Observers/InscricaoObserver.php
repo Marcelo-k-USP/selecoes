@@ -73,7 +73,7 @@ class InscricaoObserver
                 $passo = 'envio - para candidato';
                 if ($inscricao->selecao->tem_taxa &&
                     ($boleto_momento_envio == 'Envio da Inscrição/Matrícula') &&
-                    !SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)->where('selecao_id', $inscricao->selecao->id)->where('estado', 'LIKE', 'Isenção de Taxa Aprovada%')->exists())
+                    !SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)->where('selecao_id', $inscricao->selecao->id)->where('estado', 'LIKE', 'Aprovada%')->exists())
                     if (!$inscricao->selecao->exigeDisciplinas())
                         $arquivos = [$this->boletoService->gerarBoleto($inscricao, 'Inscricao')];    // gera boleto para a inscrição
                     else {
@@ -140,7 +140,7 @@ class InscricaoObserver
                 // verifica se a seleção tem taxa e se o candidato não tem isenção de taxa aprovada
                 if ($inscricao->selecao->tem_taxa &&
                     ($boleto_momento_envio == 'Aprovação da Inscrição/Matrícula') &&
-                    !SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)->where('selecao_id', $inscricao->selecao->id)->where('estado', 'LIKE', 'Isenção de Taxa Aprovada%')->exists())
+                    !SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)->where('selecao_id', $inscricao->selecao->id)->where('estado', 'LIKE', 'Aprovada%')->exists())
                     if (!$inscricao->selecao->exigeDisciplinas())
                         $arquivos = [$this->boletoService->gerarBoleto($inscricao, 'Inscricao')];    // gera boleto para a inscrição
                     else {

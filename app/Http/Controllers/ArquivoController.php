@@ -316,7 +316,7 @@ class ArquivoController extends Controller
         $motivosisencaotaxa = MotivoIsencaoTaxa::listarMotivosIsencaoTaxa();
         $solicitacaoisencaotaxa_aprovada = (in_array($classe_nome, ['Inscricao', 'Matricula'])) ? SolicitacaoIsencaoTaxa::where('extras->cpf', $extras['cpf'] ?? null)
                                                                                                                         ->where('selecao_id', $objeto->selecao->id)
-                                                                                                                        ->where('estado', 'LIKE', 'Isenção de Taxa Aprovada%')->first() : null;
+                                                                                                                        ->where('estado', 'LIKE', 'Aprovada%')->first() : null;
         $nivel = (isset($extras['nivel']) ? Nivel::where('id', $extras['nivel'])->first()->nome : '');
         if ($selecao->exigeNivel())
             $niveis_selecao = (!empty($nivel) ? collect([['nome' => $nivel]]) : Nivel::all());

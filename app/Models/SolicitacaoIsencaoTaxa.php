@@ -61,8 +61,8 @@ class SolicitacaoIsencaoTaxa extends Model
     public static function estados()
     {
         return [
-            'Aguardando Envio', 'Isenção de Taxa Solicitada',                                                                                   // decorrem de ações do candidato
-            'Isenção de Taxa em Avaliação', 'Isenção de Taxa Aprovada', 'Isenção de Taxa Rejeitada', 'Isenção de Taxa Aprovada Após Recurso'    // decorrem de ações do setor responsável
+            'Aguardando Envio', 'Enviada',                                      // decorrem de ações do candidato
+            'Em Avaliação', 'Aprovada', 'Rejeitada', 'Aprovada Após Recurso'    // decorrem de ações do setor responsável
         ];
     }
 

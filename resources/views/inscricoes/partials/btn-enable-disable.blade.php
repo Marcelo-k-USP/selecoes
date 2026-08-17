@@ -23,7 +23,7 @@
       </button>
     @endif
     @if ($inscricao->estado != 'Aguardando Envio')
-      <button type="submit" class="btn btn-sm {{ ($inscricao->estado == 'Em Pré-Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($inscricao->estado != 'Enviada')) disabled @endif name="estado" value="Em Pré-Avaliação">
+      <button type="submit" class="btn btn-sm {{ ($inscricao->estado == 'Em Pré-Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || !in_array($inscricao->estado, ['Enviada', 'Pré-Aprovada', 'Pré-Rejeitada'])) disabled @endif name="estado" value="Em Pré-Avaliação">
         Em Pré-Avaliação
       </button>
     @endif
@@ -38,7 +38,7 @@
       </button>
     @endif
     @if (in_array($inscricao->estado, ['Pré-Aprovada', 'Em Avaliação', 'Aprovada', 'Rejeitada']))
-      <button type="submit" class="btn btn-sm {{ ($inscricao->estado == 'Em Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($inscricao->estado != 'Pré-Aprovada')) disabled @endif name="estado" value="Em Avaliação">
+      <button type="submit" class="btn btn-sm {{ ($inscricao->estado == 'Em Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || !in_array($inscricao->estado, ['Pré-Aprovada', 'Aprovada', 'Rejeitada'])) disabled @endif name="estado" value="Em Avaliação">
         Em Avaliação
       </button>
     @endif
@@ -54,3 +54,25 @@
     @endif
   </div>
 {{ html()->form()->close() }}
+
+@section('javascripts_bottom')
+@parent
+  <script type="text/javascript">
+    $(document).ready(function() {
+
+      @if (in_array($inscricao->estado, ['Pré-Aprovada', 'Pré-Rejeitada']))
+        $('button[name="estado"][value="Em Pré-Avaliação"]').on('click', function(e) {
+            if (!confirm('Tem certeza que deseja RETROCEDER o estado da inscrição?'))
+              e.preventDefault();
+        });
+      @endif
+
+      @if (in_array($inscricao->estado, ['Aprovada', 'Rejeitada']))
+        $('button[name="estado"][value="Em Avaliação"]').on('click', function(e) {
+            if (!confirm('Tem certeza que deseja RETROCEDER o estado da inscrição?'))
+              e.preventDefault();
+        });
+      @endif
+    });
+  </script>
+@endsection
