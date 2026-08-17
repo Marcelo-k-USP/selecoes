@@ -17,11 +17,12 @@
     "require": {
         "php": "^8.2",
         "glorand/laravel-model-settings": "^8.0",
-        "guzzlehttp/guzzle": "^7.12.1",
+        "guzzlehttp/guzzle": "^7.15.2",
         "laravel/framework": "^12.61.1",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^4.5",
+        "league/commonmark": "^2.9.0",
         "spatie/commonmark-highlighter": "^3.0",
         "spatie/laravel-html": "^3.11",
         "spatie/simple-excel": "^3.7",
