@@ -69,7 +69,7 @@ class SolicitacaoIsencaoTaxaMail extends Mailable
 
             case 'envio - para candidato':
                 return $this
-                    ->subject('[' . config('app.name') . '] Isenção de Taxa Solicitada')
+                    ->subject('[' . config('app.name') . '] Solicitação de Isenção de Taxa Enviada')
                     ->from(config('mail.from.address'), config('mail.from.name'))
                     ->view('emails.solicitacaoisencaotaxa_envio_paracandidato')
                     ->with([
@@ -79,7 +79,7 @@ class SolicitacaoIsencaoTaxaMail extends Mailable
 
             case 'envio - para gestores':
                 return $this
-                    ->subject('[' . config('app.name') . '] Isenção de Taxa Solicitada')
+                    ->subject('[' . config('app.name') . '] Solicitação de Isenção de Taxa Enviada')
                     ->from(config('mail.from.address'), config('mail.from.name'))
                     ->view('emails.solicitacaoisencaotaxa_envio_paragestores')
                     ->with([

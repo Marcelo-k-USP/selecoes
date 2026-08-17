@@ -18,29 +18,44 @@
       Aguardando Envio
     </button>
     @if ($solicitacaoisencaotaxa->estado != 'Aguardando Envio')
-      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Solicitada') ? 'btn-success' : 'btn-secondary' }}" disabled name="estado" value="Isenção de Taxa Solicitada">
-        Isenção de Taxa Solicitada
+      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Enviada') ? 'btn-success' : 'btn-secondary' }}" disabled name="estado" value="Enviada">
+        Enviada
       </button>
     @endif
     @if ($solicitacaoisencaotaxa->estado != 'Aguardando Envio')
-      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa em Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Isenção de Taxa Solicitada')) disabled @endif name="estado" value="Isenção de Taxa em Avaliação">
-        Isenção de Taxa em Avaliação
+      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Em Avaliação') ? 'btn-warning' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || !in_array($solicitacaoisencaotaxa->estado, ['Enviada', 'Aprovada', 'Rejeitada'])) disabled @endif name="estado" value="Em Avaliação">
+        Em Avaliação
       </button>
     @endif
-    @if (in_array($solicitacaoisencaotaxa->estado, ['Isenção de Taxa em Avaliação', 'Isenção de Taxa Aprovada']))
-      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Aprovada') ? 'btn-success' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Isenção de Taxa em Avaliação')) disabled @endif name="estado" value="Isenção de Taxa Aprovada">
-        Isenção de Taxa Aprovada
+    @if (in_array($solicitacaoisencaotaxa->estado, ['Em Avaliação', 'Aprovada']))
+      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Aprovada') ? 'btn-success' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Em Avaliação')) disabled @endif name="estado" value="Aprovada">
+        Aprovada
       </button>
     @endif
-    @if (in_array($solicitacaoisencaotaxa->estado, ['Isenção de Taxa em Avaliação', 'Isenção de Taxa Rejeitada', 'Isenção de Taxa Aprovada Após Recurso']))
-      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Rejeitada') ? 'btn-danger' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Isenção de Taxa em Avaliação')) disabled @endif name="estado" value="Isenção de Taxa Rejeitada">
-        Isenção de Taxa Rejeitada
+    @if (in_array($solicitacaoisencaotaxa->estado, ['Em Avaliação', 'Rejeitada', 'Aprovada Após Recurso']))
+      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Rejeitada') ? 'btn-danger' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Em Avaliação')) disabled @endif name="estado" value="Rejeitada">
+        Rejeitada
       </button>
     @endif
-    @if (in_array($solicitacaoisencaotaxa->estado, ['Isenção de Taxa Rejeitada', 'Isenção de Taxa Aprovada Após Recurso']))
-      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Isenção de Taxa Aprovada Após Recurso') ? 'btn-success' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Isenção de Taxa Rejeitada')) disabled @endif name="estado" value="Isenção de Taxa Aprovada Após Recurso">
-        Isenção de Taxa Aprovada Após Recurso
+    @if (in_array($solicitacaoisencaotaxa->estado, ['Rejeitada', 'Aprovada Após Recurso']))
+      <button type="submit" class="btn btn-sm {{ ($solicitacaoisencaotaxa->estado == 'Aprovada Após Recurso') ? 'btn-success' : 'btn-secondary' }}" @if ((session('perfil') == 'usuario') || ($solicitacaoisencaotaxa->estado != 'Rejeitada')) disabled @endif name="estado" value="Aprovada Após Recurso">
+        Aprovada Após Recurso
       </button>
     @endif
   </div>
 {{ html()->form()->close() }}
+
+@section('javascripts_bottom')
+@parent
+  <script type="text/javascript">
+    $(document).ready(function() {
+
+      @if (in_array($solicitacaoisencaotaxa->estado, ['Aprovada', 'Rejeitada']))
+        $('button[name="estado"][value="Em Avaliação"]').on('click', function(e) {
+            if (!confirm('Tem certeza que deseja RETROCEDER o estado da solicitação de isenção de taxa?'))
+              e.preventDefault();
+        });
+      @endif
+    });
+  </script>
+@endsection

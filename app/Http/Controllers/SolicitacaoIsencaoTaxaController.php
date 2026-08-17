@@ -167,12 +167,18 @@ class SolicitacaoIsencaoTaxaController extends Controller
      */
     public function update(Request $request, SolicitacaoIsencaoTaxa $solicitacaoisencaotaxa)
     {
+        if (($solicitacaoisencaotaxa->estado === 'Aprovada') && ($request->conjunto_alterado != 'estado')) {
+            $request->session()->flash('alert-danger', 'Solicitação de isenção de taxa já aprovada não pode ser editada.');
+            \UspTheme::activeUrl('solicitacoesisencaotaxa');
+            return view('solicitacoesisencaotaxa.edit', $this->monta_compact($solicitacaoisencaotaxa, 'edit'));
+        }
+
         if ($request->input('acao', null) == 'envio') {
             Gate::authorize('solicitacoesisencaotaxa.update', $solicitacaoisencaotaxa);
 
             if ($solicitacaoisencaotaxa->todosArquivosRequeridosPresentes()) {
 
-                $solicitacaoisencaotaxa->estado = 'Isenção de Taxa Solicitada';
+                $solicitacaoisencaotaxa->estado = 'Enviada';
                 $solicitacaoisencaotaxa->save();
 
                 $request->session()->flash('alert-success', 'Sua solicitação de isenção de taxa foi enviada');
