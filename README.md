@@ -305,6 +305,12 @@ E se ligarmos o modo debug, o site também quer gravar em storage/logs.
     sudo chmod -R 755               /var/www/html/selecoes/storage
     sudo service apache2 restart
 
+### Primeiro uso
+
+Após ter completado a instalação, para o correto funcionamento do sistema é necessário informar os parâmetros.
+Entre no sistema com um perfil administrador e, em seguida, abra o menu Admin.
+Preencha cada item obrigatório das telas dos itens do menu Admin.
+
 #### ################### ####
 ## Atualização em produção ##
 #### ################### ####
