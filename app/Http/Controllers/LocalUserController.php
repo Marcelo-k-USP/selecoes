@@ -182,6 +182,15 @@ class LocalUserController extends Controller
         if (!$email_confirmation)
             return $this->processa_erro_login('Este link é inválido');
 
+        // verifica se o usuário realmente existe no banco
+        $localuser = User::where('email', $email_confirmation->email)->first();
+        if (!$localuser) {
+
+            // apaga o token órfão para limpar o banco
+            DB::table('email_confirmations')->where('email', $email_confirmation->email)->delete();
+            return $this->processa_erro_login('Usuário não encontrado. Por favor, realize o cadastro novamente.');
+        }
+
         // transaction para não ter problema de inconsistência do DB
         DB::transaction(function () use ($email_confirmation) {
 
@@ -229,10 +238,11 @@ class LocalUserController extends Controller
     public function reenviaEmailConfirmacao(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email'
+            'email' => 'required|email|exists:users,email'
         ], [
             'email.required' => 'O e-mail é obrigatório!',
-            'email.email' => 'O e-mail não é válido!'
+            'email.email' => 'O e-mail não é válido!',
+            'email.exists' => 'Usuário não cadastrado com este e-mail!'
         ]);
         if ($validator->fails()) {
             $request->session()->flash('alert-danger', implode('<br />', $validator->errors()->all()));
