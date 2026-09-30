@@ -38,6 +38,7 @@ class AlertaCandidatosIncompletude implements ShouldQueue
     {
         $selecao = Selecao::where('id', $this->selecao_id)->first();
         if ($selecao) {
+            $i = 0;
             switch ($this->classe_nome) {
                 case 'SolicitacaoIsencaoTaxa':
                     // envia e-mail para os candidatos que não enviaram suas solicitações de isenção de taxa a respeito da proximidade do término do período de solicitações de isenção de taxa
@@ -47,8 +48,10 @@ class AlertaCandidatosIncompletude implements ShouldQueue
                         if ($solicitacaoisencaotaxa->estado === 'Aguardando Envio') {
                             $extras = json_decode($solicitacaoisencaotaxa->extras, true);
                             $candidatonome = $extras['nome'];
+                            $atraso = now()->addSeconds($i * 5);     // aguarda 5 segundos a cada disparo de e-mail
                             \Mail::to($extras['e_mail'])
-                                ->queue(new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                                ->later($atraso, new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                            $i++;
                         }
                     break;
 
@@ -60,8 +63,10 @@ class AlertaCandidatosIncompletude implements ShouldQueue
                         if ($inscricao->estado === 'Aguardando Envio') {
                             $extras = json_decode($inscricao->extras, true);
                             $candidatonome = $extras['nome'];
+                            $atraso = now()->addSeconds($i * 5);     // aguarda 5 segundos a cada disparo de e-mail
                             \Mail::to($extras['e_mail'])
-                                ->queue(new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                                ->later($atraso, new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                            $i++;
                         }
                     break;
 
@@ -73,8 +78,10 @@ class AlertaCandidatosIncompletude implements ShouldQueue
                         if ($matricula->estado === 'Aguardando Envio') {
                             $extras = json_decode($matricula->extras, true);
                             $candidatonome = $extras['nome'];
+                            $atraso = now()->addSeconds($i * 5);     // aguarda 5 segundos a cada disparo de e-mail
                             \Mail::to($extras['e_mail'])
-                                ->queue(new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                                ->later($atraso, new SelecaoMail(compact('passo', 'selecao', 'candidatonome')));
+                            $i++;
                         }
             }
         }
