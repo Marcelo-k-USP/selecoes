@@ -34,17 +34,26 @@
         $estados_abreviados[] = ['nome_das' => 'das Solicitações de Isenção de Taxa', 'nome_de' => 'de Solicitações de Isenção de Taxa'];
       if ($selecao->fazInscricoes())
         $estados_abreviados[] = ['nome_das' => 'das Inscrições', 'nome_de' => 'de Inscrições'];
-      if ($selecao->fazMatriculas())
+      if ($selecao->fazMatriculas()) {
+        if (is_null($selecao->matriculas_datahora_inicio))
+          $estados_abreviados[] = ['aguardando_definicao_periodo_matriculas' => true];
         $estados_abreviados[] = ['nome_das' => 'das Matrículas', 'nome_de' => 'de Matrículas'];
+      }
     }
   @endphp
   @foreach ($estados_abreviados as $estado_abreviado)
-    <button class="btn btn-sm {{ ($selecao->estado == ('Aguardando Início ' . $estado_abreviado['nome_das'])) ? 'btn-warning' : 'btn-secondary' }}" disabled name="estado" value="Aguardando Início {{ $estado_abreviado['nome_das'] }}">
-      Aguardando Início {{ $estado_abreviado['nome_das'] }}
-    </button>
-    <button class="btn btn-sm {{ ($selecao->estado == ('Período ' . $estado_abreviado['nome_de'])) ? 'btn-success' : 'btn-secondary' }}" disabled name="estado" value="Período {{ $estado_abreviado['nome_de'] }}">
-      Período {{ $estado_abreviado['nome_de'] }}
-    </button>
+    @if (isset($estado_abreviado['aguardando_definicao_periodo_matriculas']))
+      <button class="btn btn-sm {{ ($selecao->estado == 'Aguardando Definição do Período de Matrículas') ? 'btn-warning' : 'btn-secondary' }}" disabled name="estado" value="Aguardando Definição do Período de Matrículas">
+        Aguardando Definição do Período de Matrículas
+      </button>
+    @else
+      <button class="btn btn-sm {{ ($selecao->estado == ('Aguardando Início ' . $estado_abreviado['nome_das'])) ? 'btn-warning' : 'btn-secondary' }}" disabled name="estado" value="Aguardando Início {{ $estado_abreviado['nome_das'] }}">
+        Aguardando Início {{ $estado_abreviado['nome_das'] }}
+      </button>
+      <button class="btn btn-sm {{ ($selecao->estado == ('Período ' . $estado_abreviado['nome_de'])) ? 'btn-success' : 'btn-secondary' }}" disabled name="estado" value="Período {{ $estado_abreviado['nome_de'] }}">
+        Período {{ $estado_abreviado['nome_de'] }}
+      </button>
+    @endif
   @endforeach
   <button class="btn btn-sm {{ ($selecao->estado == 'Encerrada') ? 'btn-danger' : 'btn-secondary' }}" disabled name="estado" value="Encerrada">
     Encerrada

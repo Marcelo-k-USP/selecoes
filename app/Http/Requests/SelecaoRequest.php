@@ -25,7 +25,7 @@ class SelecaoRequest extends FormRequest
      * @return array
      */
     public function rules() {
-        // o Laravel invoca prepareForValidation automaticamente neste ponto
+        // o Laravel invoca prepareForValidation automaticamente neste ponto, quando de requisições POST PUT PATCH (mas não GET)
 
         return [
             'vinculo_id' => ['required', 'numeric'],
@@ -94,15 +94,35 @@ class SelecaoRequest extends FormRequest
 
     protected function prepareForValidation() {
         $selecao_temporaria = new Selecao($this->all());
+        $tem_taxa = ($this->input('tem_taxa') === 'on');
+        $fluxo_continuo = ($this->input('fluxo_continuo') === 'on');
+
+        // determina $matricula_datas_required
+        $boleto_atrelado_matricula = !$selecao_temporaria->fazInscricoes() && $selecao_temporaria->fazMatriculas();
+        $preencheu_algum_campo_de_matricula = $this->filled('matriculas_data_inicio') ||
+                                              !in_array($this->input('matriculas_hora_inicio'), ['', '00', '00:00']) ||
+                                              $this->filled('matriculas_data_fim') ||
+                                              !in_array($this->input('matriculas_hora_fim'), ['', '00', '00:00']) ||
+                                              ($this->filled('boleto_data_vencimento') && $boleto_atrelado_matricula);
+        $matricula_datas_required = (($fluxo_continuo && $selecao_temporaria->fazMatriculas()) ||
+                                     $preencheu_algum_campo_de_matricula) ? 1 : 0;
+
+        // determina $boleto_data_vencimento_required
+        $boleto_data_vencimento_required = 0;
+        if ($tem_taxa && !$fluxo_continuo)
+            if ($selecao_temporaria->fazInscricoes() ||
+                ($selecao_temporaria->fazMatriculas() && ($matricula_datas_required === 1)))
+                $boleto_data_vencimento_required = 1;
+
         $this->merge([
             '_categoria_required_marker' => $selecao_temporaria->exigeCategoria() ? 1 : 0,
             '_programa_required_marker' => $selecao_temporaria->exigePrograma() ? 1 : 0,
-            '_solicitacaoisencaotaxa_datas_required_marker' => ($this->input('tem_taxa') === 'on') ? 1 : 0,
+            '_solicitacaoisencaotaxa_datas_required_marker' => $tem_taxa ? 1 : 0,
             '_inscricao_datas_required_marker' => $selecao_temporaria->fazInscricoes() ? 1 : 0,
-            '_matricula_datas_required_marker' => $selecao_temporaria->fazMatriculas() ? 1 : 0,
+            '_matricula_datas_required_marker' => $matricula_datas_required,
             'boleto_valor' => str_replace(',', '.', (string) $this->boleto_valor),
-            '_boleto_data_vencimento_required_marker' => ($this->input('tem_taxa') === 'on' && $this->input('fluxo_continuo') !== 'on') ? 1 : 0,
-            '_boleto_offset_vencimento_required_marker' => ($this->input('tem_taxa') === 'on' && $this->input('fluxo_continuo') === 'on') ? 1 : 0,
+            '_boleto_data_vencimento_required_marker' => $boleto_data_vencimento_required,
+            '_boleto_offset_vencimento_required_marker' => $tem_taxa && $fluxo_continuo ? 1 : 0,
         ]);
     }
 }

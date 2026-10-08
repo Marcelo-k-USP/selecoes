@@ -46,6 +46,10 @@
         $(this).mask('00/00/0000');
       });
 
+      $('#matriculas_data_inicio, #matriculas_hora_inicio, #matriculas_data_fim, #matriculas_hora_fim, #boleto_data_vencimento').on('input change changeDate dateChanged', function() {
+        updateIndicativosObrigatoriedade();
+      });
+
       vinculos = @json($vinculos->keyBy('id'));
       categorias = @json($categorias->keyBy('id'));
       programas = @json($programas->keyBy('id'));
@@ -132,6 +136,7 @@
         updateCamposDataHora();
         updateCamposEmail();
         updateCamposBoleto();
+        updateIndicativosObrigatoriedade();
       });
 
       // caso o usuário possa acessar um único vínculo, seleciona-o e oculta o campo de seleção
@@ -145,11 +150,13 @@
         updateCampoFluxoContinuo();
         updateCamposDataHora();
         updateCamposBoleto();
+        updateIndicativosObrigatoriedade();
       });
 
       $('#fluxo_continuo').on('click', function () {
         updateCamposDataHora();
         updateCamposBoleto();
+        updateIndicativosObrigatoriedade();
       });
 
       $('#form_principal').on('submit', function(event) {
@@ -312,6 +319,41 @@
         mostraCamposEmail('matricula');
       else
         ocultaCamposEmail('matricula');
+    }
+
+    function toggleIndicativoObrigatoriedade(campo_id, acao) {
+      if (acao == 'mostrar')
+        $('label[for="' + campo_id + '"]').find('.text-required').show();
+      if (acao == 'ocultar')
+        $('label[for="' + campo_id + '"]').find('.text-required').hide();
+    }
+
+    function updateIndicativosObrigatoriedade() {
+      tem_taxa = $('#tem_taxa').prop('checked');
+      fluxo_continuo = $('#fluxo_continuo').prop('checked');
+
+      // determina matricula_datas_required
+      boleto_atrelado_matricula = (!faz_inscricoes && faz_matriculas);
+      preencheu_algum_campo_de_matricula = $('#matriculas_data_inicio').val() !== '' ||
+                                           !['', '00', '00:00'].includes($('#matriculas_hora_inicio').val()) ||
+                                           $('#matriculas_data_fim').val() !== '' ||
+                                           !['', '00', '00:00'].includes($('#matriculas_hora_fim').val()) ||
+                                           (($('#boleto_data_vencimento').val() !== '') && boleto_atrelado_matricula);
+      matricula_datas_required = ((fluxo_continuo && faz_matriculas) ||
+                                  preencheu_algum_campo_de_matricula);
+
+      // determina boleto_data_vencimento_required
+      boleto_data_vencimento_required = false;
+      if (tem_taxa && !fluxo_continuo)
+        if (faz_inscricoes ||
+            (faz_matriculas && matricula_datas_required))
+          boleto_data_vencimento_required = true;
+
+      toggleIndicativoObrigatoriedade('matriculas_data_inicio', matricula_datas_required ? 'mostrar' : 'ocultar');
+      toggleIndicativoObrigatoriedade('matriculas_hora_inicio', matricula_datas_required ? 'mostrar' : 'ocultar');
+      toggleIndicativoObrigatoriedade('matriculas_data_fim', matricula_datas_required ? 'mostrar' : 'ocultar');
+      toggleIndicativoObrigatoriedade('matriculas_hora_fim', matricula_datas_required ? 'mostrar' : 'ocultar');
+      toggleIndicativoObrigatoriedade('boleto_data_vencimento', boleto_data_vencimento_required ? 'mostrar' : 'ocultar');
     }
   </script>
 @endsection
