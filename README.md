@@ -26,18 +26,25 @@ Ao cadastrar uma nova seleção, conforme for configurado nos vínculos, categor
 Ao cadastrar uma nova seleção com cobrança de taxa, todos os motivos de isenção de taxa são automaticamente associados à ela; cabe ao gerente verificar se é isso mesmo o desejado para a nova seleção.
 
 A seleção pode ser normal ou de "fluxo contínuo". No caso normal, a data de vencimento do boleto é cadastrada na própria seleção; no caso de fluxo contínuo, os períodos dos fluxos disponíveis para o processo coincidem, e a data de vencimento do boleto é calculada somando-se uma determinada quantidade de dias úteis (quantidade essa cadastrada na seleção) acrescidos à data de envio da inscrição ou matrícula.
+
+Ao cadastrar uma seleção que possua o fluxo de matrículas e não seja de "fluxo contínuo", o gerente pode optar por não definir imediatamente as datas desse período, deixando para definí-las no futuro. Posteriormente, ao informar essas datas, o sistema exige o preenchimento integral do bloco (início e fim do período e data de vencimento do boleto, caso haja taxa e ela for para matrícula).
+
 Os possíveis fluxos de estados de seleções sem cobrança de taxa são:
 1) Em Elaboração -> Aguardando Início das Inscrições -> Período de Inscrições -> Encerrada
-2) Em Elaboração -> Aguardando Início das Inscrições -> Período de Inscrições -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
-3) Em Elaboração -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+2) Em Elaboração -> Aguardando Início das Inscrições -> Período de Inscrições [-> Aguardando Definição do Período de Matrículas] -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+3) Em Elaboração [-> Aguardando Definição do Período de Matrículas] -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+
 Os possíveis fluxos de estados de seleções com cobrança de taxa são:
 1) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa -> Período de Solicitações de Isenção de Taxa -> Aguardando Início das Inscrições -> Período de Inscrições -> Encerrada
-2) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa -> Período de Solicitações de Isenção de Taxa -> Aguardando Início das Inscrições -> Período de Inscrições -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
-3) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa -> Período de Solicitações de Isenção de Taxa -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+2) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa -> Período de Solicitações de Isenção de Taxa -> Aguardando Início das Inscrições -> Período de Inscrições [-> Aguardando Definição do Período de Matrículas] -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+3) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa -> Período de Solicitações de Isenção de Taxa [-> Aguardando Definição do Período de Matrículas] -> Aguardando Início das Matrículas -> Período de Matrículas -> Encerrada
+
 Os possíveis fluxos de estados de seleções com cobrança de taxa e fluxo contínuo são:
 1) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa e das Inscrições -> Período de Solicitações de Isenção de Taxa e de Inscrições -> Encerrada
 2) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa, das Inscrições e das Matrículas -> Período de Solicitações de Isenção de Taxa, de Inscrições e de Matrículas -> Encerrada
 3) Em Elaboração -> Aguardando Início das Solicitações de Isenção de Taxa e das Matrículas -> Período de Solicitações de Isenção de Taxa e de Matrículas -> Encerrada
+
+Sendo que, acima, os estados contidos em colchetes podem ou não ocorrer. O estado Aguardando Definição do Período de Matrículas só vai ocorrer caso o período de matrículas ainda não tenha sido cadastrado na seleção.
 
 Há cinco grupos de funções para gestores: docentes do programa, secretários(as) dos programas, coordenadores(as) dos programas, funcionários(as) do setor e coordenadores(as) do setor.
 Gestores dos três primeiros grupos de funções são atrelados aos programas. Eles podem acessar seleções, solicitações de isenção de taxa, inscrições e matrículas somente de seus programas associados.

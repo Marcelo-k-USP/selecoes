@@ -919,7 +919,7 @@ class Selecao extends Model
                 'Aguardando Início das Solicitações de Isenção de Taxa e das Matrículas'                , 'Período de Solicitações de Isenção de Taxa e de Matrículas',                   // usados nos casos de fluxo contínuo com taxa
                 'Aguardando Início das Solicitações de Isenção de Taxa'                                 , 'Período de Solicitações de Isenção de Taxa',                                   // usados nos casos de fluxo normal com taxa
                 'Aguardando Início das Inscrições', 'Periodo de Inscrições',
-                'Aguardando Início das Matrículas', 'Periodo de Matrículas',
+                'Aguardando Definição do Período de Matrículas', 'Aguardando Início das Matrículas', 'Periodo de Matrículas',
                 'Encerrada'];
     }
 
@@ -1133,13 +1133,19 @@ class Selecao extends Model
                     $estados_abreviados[] = ['nome_das' => 'das Solicitações de Isenção de Taxa', 'nome_de' => 'de Solicitações de Isenção de Taxa', 'inicio' => $this->solicitacoesisencaotaxa_datahora_inicio, 'fim' => $this->solicitacoesisencaotaxa_datahora_fim];
                 if ($this->fazInscricoes())
                     $estados_abreviados[] = ['nome_das' => 'das Inscrições', 'nome_de' => 'de Inscrições', 'inicio' => $this->inscricoes_datahora_inicio, 'fim' => $this->inscricoes_datahora_fim];
-                if ($this->fazMatriculas())
+                if ($this->fazMatriculas()) {
+                    if (is_null($this->matriculas_datahora_inicio))
+                        $estados_abreviados[] = ['aguardando_definicao_periodo_matriculas' => true];
                     $estados_abreviados[] = ['nome_das' => 'das Matrículas', 'nome_de' => 'de Matrículas', 'inicio' => $this->matriculas_datahora_inicio, 'fim' => $this->matriculas_datahora_fim];
+                }
             }
 
             $estado_calculado = 'Encerrada';
             foreach ($estados_abreviados as $estado_abreviado)
-                if ($agora < $estado_abreviado['inicio']) {
+                if (isset($estado_abreviado['aguardando_definicao_periodo_matriculas'])) {
+                    $estado_calculado = 'Aguardando Definição do Período de Matrículas';
+                    break;
+                } elseif ($agora < $estado_abreviado['inicio']) {
                     $estado_calculado = 'Aguardando Início ' . $estado_abreviado['nome_das'];
                     break;
                 } elseif ($agora <= $estado_abreviado['fim']) {

@@ -330,8 +330,6 @@ class SelecaoController extends Controller
     private function validateDates(?\DateTime $solicitacoesisencaotaxa_datahora_inicio, ?\DateTime $solicitacoesisencaotaxa_datahora_fim, ?\DateTime $inscricoes_datahora_inicio, ?\DateTime $inscricoes_datahora_fim, ?\DateTime $matriculas_datahora_inicio, ?\DateTime $matriculas_datahora_fim, ?\DateTime $boleto_data_vencimento,
                                    bool $fluxo_continuo, bool $tem_taxa, bool $faz_inscricoes, bool $faz_matriculas)
     {
-        $boleto_data_vencimento = $boleto_data_vencimento ?? CarbonImmutable::endOfTime();
-
         $datas_ordenadas = [];
         if ($fluxo_continuo) {    // neste caso, as datas dos fluxos coincidem, então basta checar as datas de um dos fluxos
             if ($faz_inscricoes) {
@@ -351,13 +349,13 @@ class SelecaoController extends Controller
                 $datas_ordenadas[] = $inscricoes_datahora_fim;
             }
             $boleto_data_vencimento_antes_das_matriculas = ($tem_taxa && $faz_inscricoes && $faz_matriculas);
-            if ($boleto_data_vencimento_antes_das_matriculas)
+            if ($boleto_data_vencimento_antes_das_matriculas && !is_null($boleto_data_vencimento))
                 $datas_ordenadas[] = $boleto_data_vencimento;
-            if ($faz_matriculas) {
+            if ($faz_matriculas && !is_null($matriculas_datahora_inicio)) {
                 $datas_ordenadas[] = $matriculas_datahora_inicio;
                 $datas_ordenadas[] = $matriculas_datahora_fim;
             }
-            if ($tem_taxa && !$boleto_data_vencimento_antes_das_matriculas)
+            if ($tem_taxa && !$boleto_data_vencimento_antes_das_matriculas && !is_null($boleto_data_vencimento))
                 $datas_ordenadas[] = $boleto_data_vencimento;
         }
 
