@@ -324,10 +324,12 @@ class JSONForms
         if ((!empty($json)) && (is_array($json)))
             foreach ($json as $item) {
                 $item = (is_array($item) ? json_decode(json_encode($item)) : $item);
-                $value = $item->$field;
-                if (isset($value) && (!empty($value)) && is_numeric($value))
-                    if ($value > $lastIndex)
-                        $lastIndex = $value;
+                if (is_object($item) && isset($item->$field)) {
+                    $value = $item->$field;
+                    if (is_numeric($value))
+                        if ($value > $lastIndex)
+                            $lastIndex = $value;
+                }
             }
         return $lastIndex;
     }
