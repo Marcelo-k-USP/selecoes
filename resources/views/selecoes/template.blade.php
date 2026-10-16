@@ -73,7 +73,7 @@
                                     </select>
                                     @break
                                   @case('can')
-                                    <select class="form-control" name="template[{{ $tkey }}][{{ $field }}]"{{ $disable_functions }}>
+                                    <select class="form-control" name="template[{{ $tkey }}][{{ $field }}]" disabled>
                                       <option value='' {{ $tvalue[$field] == '' ? 'selected' : '' }}>Exibido para todos</option>
                                       <option value='gerente' {{ $tvalue[$field] == 'gerente' ? 'selected' : '' }}>Somente Gerentes</option>
                                     </select>
@@ -102,7 +102,7 @@
                                     </select>
                                     @break
                                   @case('can')
-                                    <select class="form-control" name="template[{{ $tkey }}][{{ $field }}]"{{ $disable_functions }}>
+                                    <select class="form-control" name="template[{{ $tkey }}][{{ $field }}]" disabled>
                                       <option value=''>Exibido para todos</option>
                                       <option value='gerente'>Somente Gerente</option>
                                     </select>

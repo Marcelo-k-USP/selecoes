@@ -18,10 +18,6 @@
             @method('post')
             @csrf
             {{ html()->hidden('id') }}
-            <div id="template-new" class="form-group row mt-2">
-              <div class="col-3"><strong>Campo</strong></div>
-              <input class="form-control col-8" name="campo" id="id_campo1">
-            </div>
             @foreach ($selecao->getTemplateFields() as $field)
               <div class="form-group row mt-2">
                 <div class="col-3"><strong>{{ ucfirst($field) }}</strong></div>
@@ -45,7 +41,7 @@
                     </select>
                     @break
                   @case('can')
-                    <select class="form-control col-8" name="new[{{ $field }}]">
+                    <select class="form-control col-8" name="new[{{ $field }}]" disabled>
                       <option value=''>Exibido para todos</option>
                       <option value='gerente'>Somente Gerentes</option>
                     </select>
@@ -72,7 +68,7 @@
     $(document).ready(function() {
 
       $('#json-modal-form').on('shown.bs.modal', function() {
-        $('#id_campo1').focus();
+        $(this).find('input, select, textarea').filter(':visible').not(':disabled').first().focus();
       });
 
       json_modal_form = function() {
