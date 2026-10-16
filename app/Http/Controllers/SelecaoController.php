@@ -412,7 +412,8 @@ class SelecaoController extends Controller
             'template.*.label' => 'required',
             'template.*.type' => 'required',
         ]);
-        if (isset($request->campo)) {
+        $new = (!is_null($request->new)) ? array_filter($request->new, 'strlen') : null;
+        if (isset($new['label'])) {                           // veio do adicionar campo novo
             $request->validate([
                 'new.label' => 'required',
                 'new.type' => 'required',
@@ -430,11 +431,10 @@ class SelecaoController extends Controller
                 $template[$campo]['value'] = isset($atributo['value']) ? json_decode($atributo['value'], true) : [];
         // adiciona campo novo
         $new = (!is_null($request->new)) ? array_filter($request->new, 'strlen') : null;
-        if (isset($new['label']))
+        if (isset($new['label'])) {                           // veio do adicionar campo novo
             $new['label'] = removeSpecialChars($new['label']);
-        $new['order'] = JSONForms::getLastIndex($template, 'order') + 1;
-        if (isset($request->campo)) {                           // veio do adicionar campo novo
-            $request->campo = removeSpecialChars($request->campo);
+            $new['order'] = JSONForms::getLastIndex($template, 'order') + 1;
+            $request->campo = substr(removeAccents(Str::of($new['label'])->lower()->replace([' ', '-'], '_')), 0, 32);
             $template[$request->campo] = $new;
             if (isset($new['value']))
                 $template[$request->campo]['value'] = json_decode($new['value']);    // necessário para remover " excedentes que quebravam o JSON
