@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "243705ad4f9bfdc76c5678c4e6a63eaf",
+    "content-hash": "06801711af6beb9c844a031a8e9e06f9",
     "packages": [
         {
             "name": "brick/math",
@@ -4372,69 +4372,6 @@
             "time": "2026-09-16T11:39:30+00:00"
         },
         {
-            "name": "rap2hpoutre/laravel-log-viewer",
-            "version": "v2.5.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/rap2hpoutre/laravel-log-viewer.git",
-                "reference": "ab85d5d88de728b99a9391a0c70e9b2f5743a589"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/rap2hpoutre/laravel-log-viewer/zipball/ab85d5d88de728b99a9391a0c70e9b2f5743a589",
-                "reference": "ab85d5d88de728b99a9391a0c70e9b2f5743a589",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
-                "php": "^7.2|^8.0"
-            },
-            "require-dev": {
-                "orchestra/testbench": "^4.0|^5.0|^6.0|^7.0|^8.0|^9.0|^10.0",
-                "phpunit/phpunit": "^7||^8.4|^9.3.3|^10.1|^11.0"
-            },
-            "type": "laravel-package",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Rap2hpoutre\\LaravelLogViewer\\LaravelLogViewerServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "Rap2hpoutre\\LaravelLogViewer\\": "src/"
-                },
-                "classmap": [
-                    "src/controllers"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "rap2hpoutre",
-                    "email": "raphaelht@gmail.com"
-                }
-            ],
-            "description": "A Laravel log reader",
-            "keywords": [
-                "laravel",
-                "log",
-                "log-reader",
-                "log-viewer",
-                "logging",
-                "lumen"
-            ],
-            "support": {
-                "issues": "https://github.com/rap2hpoutre/laravel-log-viewer/issues",
-                "source": "https://github.com/rap2hpoutre/laravel-log-viewer/tree/v2.5.0"
-            },
-            "time": "2025-03-10T15:35:06+00:00"
-        },
-        {
             "name": "scrivo/highlight.php",
             "version": "v9.18.1.10",
             "source": {
@@ -7811,23 +7748,22 @@
         },
         {
             "name": "uspdev/laravel-tools",
-            "version": "1.4.8",
+            "version": "1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/uspdev/laravel-tools.git",
-                "reference": "da049e1ca8528c264ef34bc1d014169ce56602c7"
+                "reference": "fb3a568e677816f7ec14bcfb0033504a59d86baa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/uspdev/laravel-tools/zipball/da049e1ca8528c264ef34bc1d014169ce56602c7",
-                "reference": "da049e1ca8528c264ef34bc1d014169ce56602c7",
+                "url": "https://api.github.com/repos/uspdev/laravel-tools/zipball/fb3a568e677816f7ec14bcfb0033504a59d86baa",
+                "reference": "fb3a568e677816f7ec14bcfb0033504a59d86baa",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.3|^8.0",
-                "rap2hpoutre/laravel-log-viewer": "^2.2",
-                "spatie/laravel-db-snapshots": "^2.6",
-                "ybr-nx/laravel-mariadb": "^1.0"
+                "spatie/commonmark-highlighter": "^2.0 || ^3.0",
+                "spatie/laravel-db-snapshots": "^2.6"
             },
             "type": "library",
             "extra": {
@@ -7858,9 +7794,9 @@
             "description": "Coleção de ferramentas para incrementar o Laravel",
             "support": {
                 "issues": "https://github.com/uspdev/laravel-tools/issues",
-                "source": "https://github.com/uspdev/laravel-tools/tree/1.4.8"
+                "source": "https://github.com/uspdev/laravel-tools/tree/1.7.0"
             },
-            "time": "2025-05-07T16:32:01+00:00"
+            "time": "2026-10-21T11:31:25+00:00"
         },
         {
             "name": "uspdev/laravel-usp-theme",
@@ -8177,59 +8113,6 @@
                 }
             ],
             "time": "2026-04-26T05:33:54+00:00"
-        },
-        {
-            "name": "ybr-nx/laravel-mariadb",
-            "version": "1.0.20",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ybr-nx/laravel-mariadb.git",
-                "reference": "1dd893432237e28d5d43d1de110be925602dd37d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ybr-nx/laravel-mariadb/zipball/1dd893432237e28d5d43d1de110be925602dd37d",
-                "reference": "1dd893432237e28d5d43d1de110be925602dd37d",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/database": ">=5.3"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "YbrNX\\MariaDB\\MariaDBServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "YbrNX\\MariaDB\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "EUPL-1.2"
-            ],
-            "authors": [
-                {
-                    "name": "Ingmar Aasoja",
-                    "email": "ingmar@aasoja.ee"
-                }
-            ],
-            "description": "Add MariaDB JSON select support to Laravel",
-            "keywords": [
-                "database",
-                "json",
-                "laravel",
-                "mariadb"
-            ],
-            "support": {
-                "issues": "https://github.com/ybr-nx/laravel-mariadb/issues",
-                "source": "https://github.com/ybr-nx/laravel-mariadb/tree/1.0.20"
-            },
-            "time": "2019-09-11T05:18:47+00:00"
         }
     ],
     "packages-dev": [
@@ -11036,5 +10919,5 @@
         "php": "^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
