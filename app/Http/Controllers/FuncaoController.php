@@ -60,7 +60,7 @@ class FuncaoController extends Controller
         return view('funcoes.edit', $this->monta_compact($vinculo));
     }
 
-    private function monta_compact(Vinculo $vinculo = null)
+    private function monta_compact(?Vinculo $vinculo = null)
     {
         if (is_null($vinculo))
             $vinculo = Vinculo::first();

@@ -18,12 +18,11 @@ class ZipService
 
         $zip = new ZipArchive();
         if ($zip->open($zip_fullfilename, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            foreach ($arquivos as $arquivo) {
-                $file_path = Storage::path($arquivo->caminho);
-                if (file_exists($file_path)) {
+            foreach ($arquivos as $arquivo)
+                if (Storage::exists($arquivo->caminho)) {
+                    $file_path = Storage::path($arquivo->caminho);
                     $zip->addFile($file_path, $arquivo->nome_original);
                 }
-            }
             $zip->close();
             return $zip_fullfilename;
         }

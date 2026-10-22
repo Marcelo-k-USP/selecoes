@@ -859,6 +859,7 @@ class SelecaoController extends Controller
 
         $writer = SimpleExcelWriter::streamDownload(ClasseUtils::obterClasseNomeAbreviada('Selecao') . $selecao->id . '_' . ClasseUtils::obterClasseNomeAbreviadaPlural('SolicitacaoIsencaoTaxa') . '_' . $ano . '.xlsx')
             ->addRows($arr);
+        return $writer->toBrowser();
     }
 
     /**
@@ -912,6 +913,7 @@ class SelecaoController extends Controller
 
         $writer = SimpleExcelWriter::streamDownload(ClasseUtils::obterClasseNomeAbreviada('Selecao') . $selecao->id . '_' . ClasseUtils::obterClasseNomeAbreviadaPlural('Inscricao') . '_' . $ano . '.xlsx')
             ->addRows($arr);
+        return $writer->toBrowser();
     }
 
     /**
@@ -963,6 +965,7 @@ class SelecaoController extends Controller
 
         $writer = SimpleExcelWriter::streamDownload(ClasseUtils::obterClasseNomeAbreviada('Selecao') . $selecao->id . '_' . ClasseUtils::obterClasseNomeAbreviadaPlural('Matricula') . '_' . $ano . '.xlsx')
             ->addRows($arr);
+        return $writer->toBrowser();
     }
 
     private function monta_compact(Selecao $selecao, string $modo, ?string $scroll = null)

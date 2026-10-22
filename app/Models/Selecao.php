@@ -15,7 +15,7 @@ use Uspdev\Replicado\Estrutura;
 
 class Selecao extends Model
 {
-    use \Glorand\Model\Settings\Traits\HasSettingsField;
+    use \Glorand\Model\Settings\Traits\HasSettings;
     use HasFactory;
 
     # selecoes não segue convenção do laravel para nomes de tabela
@@ -1311,7 +1311,7 @@ class Selecao extends Model
     /**
      * accessor getter para "config"
      */
-    public function getConfigAttribute(string $value)
+    public function getConfigAttribute(?string $value)
     {
         $value = json_decode($value);
 
@@ -1342,7 +1342,7 @@ class Selecao extends Model
     /**
      * accessor getter para "template"
      */
-    public function getTemplateAttribute(string $value)
+    public function getTemplateAttribute(?string $value)
     {
         return (empty($value)) ? '{}' : $value;
     }

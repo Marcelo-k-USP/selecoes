@@ -16,16 +16,16 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "glorand/laravel-model-settings": "^8.0",
+        "glorand/laravel-model-settings": "*",
         "guzzlehttp/guzzle": "^7.15.2",
-        "laravel/framework": "^12.61.1",
-        "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.5",
-        "laravel/ui": "^4.5",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "*",
+        "laravel/tinker": "*",
+        "laravel/ui": "*",
         "league/commonmark": "^2.9.0",
         "spatie/commonmark-highlighter": "^3.0",
-        "spatie/laravel-html": "^3.11",
-        "spatie/simple-excel": "^3.7",
+        "spatie/laravel-html": "*",
+        "spatie/simple-excel": "*",
         "uspdev/boleto": "^1.0",
         "uspdev/laravel-replicado": "^1.0",
         "uspdev/laravel-tools": "^1.7",
@@ -34,13 +34,13 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
-        "laravel/dusk": "^8.0",
-        "laravel/sail": "^1.0.1",
+        "laravel/dusk": "*",
+        "laravel/sail": "*",
         "lucascudo/laravel-pt-br-localization": "^1.2",
         "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^8.8",
+        "nunomaduro/collision": "*",
         "phpunit/phpunit": "^11.5.50",
-        "spatie/laravel-ignition": "^2.0"
+        "spatie/laravel-ignition": "*"
     },
     "autoload": {
         "psr-4": {
