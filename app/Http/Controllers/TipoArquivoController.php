@@ -270,7 +270,7 @@ class TipoArquivoController extends Controller
 
         $tipoarquivo->categorias()->detach($categoria);
 
-        $request->session()->flash('alert-success', 'A categoria ' . $categoria->nome . '(' . $categoria->vinculo->nome . ') foi removida desse tipo de documento');
+        $request->session()->flash('alert-success', 'A categoria ' . $categoria->nome . ' (' . $categoria->vinculo->nome . ') foi removida desse tipo de documento');
         \UspTheme::activeUrl('tiposarquivo');
         return view('tiposarquivo.edit', $this->monta_compact($tipoarquivo, 'edit'));
     }

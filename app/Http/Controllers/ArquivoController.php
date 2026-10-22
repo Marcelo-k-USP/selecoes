@@ -249,7 +249,7 @@ class ArquivoController extends Controller
 
     private function zip(Collection $arquivos, string $zip_name)
     {
-        $totalsize = $arquivos->sum(function ($arquivo) { return Storage::size($arquivo->caminho); });
+        $totalsize = $arquivos->sum(function ($arquivo) { return Storage::exists($arquivo->caminho) ? Storage::size($arquivo->caminho) : 0; });
         ini_set('max_execution_time', $this->obterTimeoutMaximo($totalsize));    // aumenta o tempo máximo de execução deste método com base no tamanho do arquivo a baixar
 
         $zip_fullfilename = $this->zipService->gerarZip($arquivos, $zip_name);
