@@ -15,7 +15,7 @@ class Authenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
-            return route('login');
+            return route('home');    // não redireciona para login, pois o login estritamente é para Gestores, e precisamos que vá para a home, para escolher se candidato ou gestor
         }
     }
 }

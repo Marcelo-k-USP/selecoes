@@ -75,7 +75,7 @@ class LocalUserController extends Controller
         }
 
         session(['perfil' => 'usuario']);
-        return redirect('/');
+        return redirect()->intended('/');    // redireciona para a página que o usuário tentou acessar antes do login, ou para a home caso não haja uma página específica
     }
 
     public function esqueceuSenha(Request $request)

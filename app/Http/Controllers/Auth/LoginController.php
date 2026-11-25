@@ -119,7 +119,7 @@ class LoginController extends Controller
         if ($user->is_admin || !$user->listarProgramasGerenciados()->isEmpty()) {
             Auth::login($user, true);
             session(['perfil' => ($user->is_admin ? 'admin' : ($possui_vinculo_gerente_acima_docente ? 'gerente' : ($possui_vinculo_docente ? 'docente' : 'usuario')))]);
-            return redirect('/');
+            return redirect()->intended('/');    // redireciona para a página que o usuário tentou acessar antes do login, ou para a home caso não haja uma página específica
         } else    // o login de candidato só ocorre no LocalUserController, então não preciso me preocupar com ele aqui
             return response()->view('errors.nao_gestor');
     }
